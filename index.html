@@ -1659,10 +1659,10 @@
         
         const syncStatusElement = document.createElement('div');
         syncStatusElement.id = 'syncStatus';
-        syncStatusElement.className = 'hidden md:flex items-center text-sm';
+        syncStatusElement.className = 'flex items-center text-sm';
         syncStatusElement.innerHTML = `
           <div class="w-2 h-2 rounded-full mr-2 bg-gray-300"></div>
-          <span>Não sincronizado</span>
+          <span class="hidden sm:inline">Não sincronizado</span>
         `;
         
         syncContainer.appendChild(syncButton);
