@@ -197,9 +197,10 @@
   <header class="bg-white shadow-sm sticky top-0 z-50">
     <!-- Logo和标题区域 -->
     <div class="px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 px-4">
-        <!-- 移动端：左侧汉堡菜单 -->
-        <div class="md:hidden">
+      <div class="flex items-center h-16 px-4">
+        <!-- 移动端：左侧区域 -->
+        <div class="md:hidden flex items-center space-x-2">
+          <!-- 汉堡菜单 -->
           <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
             <div class="w-6 h-6 flex flex-col justify-center items-center">
               <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
@@ -207,11 +208,14 @@
               <div class="hamburger-line w-5 h-0.5 bg-gray-500"></div>
             </div>
           </button>
-        </div>
-        
-        <!-- 移动端：YOUBAI标识 -->
-        <div class="md:hidden flex-1">
-          <h1 class="text-lg font-semibold text-gray-500 ml-4">YOUBAI</h1>
+          
+          <!-- YOUBAI标识 -->
+          <h1 class="text-lg font-semibold text-gray-500">YOUBAI</h1>
+          
+          <!-- 搜索按钮 -->
+          <button id="mobileSearchBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileSearch()">
+            <i class="fa fa-search text-gray-500 text-lg"></i>
+          </button>
         </div>
         
         <!-- 桌面版Logo和标题 -->
@@ -232,15 +236,10 @@
           </div>
         </div>
         
-        <!-- 移动端：右侧搜索按钮 -->
-        <div class="md:hidden">
-          <button id="mobileSearchBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileSearch()">
-            <i class="fa fa-search text-gray-500 text-lg"></i>
-          </button>
+        <!-- 右侧区域：同步图标将在这里显示 -->
+        <div class="flex-1 flex justify-end" id="headerRight">
+          <!-- 桌面版和移动端的同步图标都会动态添加到这里 -->
         </div>
-        
-        <!-- 桌面版：右侧空白区域（保持平衡） -->
-        <div class="hidden md:block w-16"></div>
       </div>
     </div>
     
@@ -1646,25 +1645,25 @@
 
     // Adicionar elemento de status de sincronização ao cabeçalho
     function addSyncStatusElement() {
-      const headerRight = document.querySelector('header .flex.items-center.justify-between');
+      const headerRight = document.getElementById('headerRight');
       if (headerRight) {
         const syncContainer = document.createElement('div');
-        syncContainer.className = 'flex items-center space-x-4';
+        syncContainer.className = 'flex items-center space-x-2';
+        
+        // Adicionar botão de sincronização manual
+        const syncButton = document.createElement('button');
+        syncButton.className = 'p-2 text-gray-500 hover:text-primary transition-colors rounded-lg hover:bg-gray-100';
+        syncButton.innerHTML = '<i class="fa fa-refresh"></i>';
+        syncButton.title = 'Sincronizar dados';
+        syncButton.onclick = syncWithServer;
         
         const syncStatusElement = document.createElement('div');
         syncStatusElement.id = 'syncStatus';
-        syncStatusElement.className = 'flex items-center text-sm';
+        syncStatusElement.className = 'hidden md:flex items-center text-sm';
         syncStatusElement.innerHTML = `
           <div class="w-2 h-2 rounded-full mr-2 bg-gray-300"></div>
           <span>Não sincronizado</span>
         `;
-        
-        // Adicionar botão de sincronização manual
-        const syncButton = document.createElement('button');
-        syncButton.className = 'text-gray-500 hover:text-primary transition-colors';
-        syncButton.innerHTML = '<i class="fa fa-refresh"></i>';
-        syncButton.title = 'Sincronizar dados';
-        syncButton.onclick = syncWithServer;
         
         syncContainer.appendChild(syncButton);
         syncContainer.appendChild(syncStatusElement);
