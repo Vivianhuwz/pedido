@@ -197,15 +197,11 @@
   <header class="bg-white shadow-sm sticky top-0 z-50">
     <!-- Logo和标题区域 -->
     <div class="px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- 移动端：左侧菜单按钮 -->
+      <div class="flex items-center justify-between h-16 px-4">
+        <!-- 移动端：左侧搜索按钮 -->
         <div class="md:hidden">
-          <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
-            <div class="w-6 h-6 flex flex-col justify-center items-center">
-              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
-              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
-              <div class="hamburger-line w-5 h-0.5 bg-gray-500"></div>
-            </div>
+          <button id="mobileSearchBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileSearch()">
+            <i class="fa fa-search text-gray-500 text-lg"></i>
           </button>
         </div>
         
@@ -232,10 +228,14 @@
           </div>
         </div>
         
-        <!-- 移动端：右侧搜索按钮 -->
+        <!-- 移动端：右侧菜单按钮 -->
         <div class="md:hidden">
-          <button id="mobileSearchBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileSearch()">
-            <i class="fa fa-search text-gray-500 text-lg"></i>
+          <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
+            <div class="w-6 h-6 flex flex-col justify-center items-center">
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500"></div>
+            </div>
           </button>
         </div>
         
