@@ -98,14 +98,14 @@
     }
     
     .mobile-nav-item.active {
-      background: linear-gradient(135deg, #165DFF 0%, #4299e1 100%);
-      color: white;
+      background: linear-gradient(135deg, #87CEEB 0%, #B0E0E6 100%);
+      color: #2563eb;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(135, 206, 235, 0.4);
     }
     
     .mobile-nav-item:hover:not(.active) {
-      background-color: #f8fafc;
+      background-color: #e0f2fe;
       transform: translateY(-1px);
     }
 
@@ -162,12 +162,12 @@
     }
     
     #mobileSearchBtn:hover {
-      background-color: rgba(59, 130, 246, 0.1);
+      background-color: rgba(135, 206, 235, 0.2);
     }
     
     #mobileSearchBtn.active {
-      background-color: rgba(59, 130, 246, 0.1);
-      color: #3b82f6;
+      background-color: rgba(135, 206, 235, 0.3);
+      color: #2563eb;
     }
 
     /* 移动端优化 */
@@ -198,13 +198,24 @@
     <!-- Logo和标题区域 -->
     <div class="px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <!-- 移动端：左侧YOUBAI标识 -->
+        <!-- 移动端：左侧菜单按钮 -->
         <div class="md:hidden">
+          <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
+            <div class="w-6 h-6 flex flex-col justify-center items-center">
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500"></div>
+            </div>
+          </button>
+        </div>
+        
+        <!-- 移动端：中间YOUBAI标识 -->
+        <div class="md:hidden flex-1 text-center">
           <h1 class="text-lg font-semibold text-gray-500">YOUBAI</h1>
         </div>
         
         <!-- 桌面版Logo和标题 -->
-        <div class="hidden sm:block">
+        <div class="hidden md:block">
           <h1 class="text-lg font-semibold text-gray-500">YOUBAI</h1>
           <p class="text-xs text-gray-300">Sistema de Gerenciamento de Pedidos</p>
         </div>
@@ -216,25 +227,15 @@
               <i class="fa fa-search text-gray-300"></i>
             </div>
             <input type="text" id="headerSearchInput" placeholder="Pesquisar pedidos..." 
-              class="w-full pl-10 pr-4 py-2 border border-gray-100 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               oninput="searchOrders()">
           </div>
         </div>
         
-        <!-- 移动端：右侧按钮组 -->
-        <div class="md:hidden flex items-center space-x-2">
-          <!-- 搜索按钮 -->
+        <!-- 移动端：右侧搜索按钮 -->
+        <div class="md:hidden">
           <button id="mobileSearchBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileSearch()">
             <i class="fa fa-search text-gray-500 text-lg"></i>
-          </button>
-          
-          <!-- 菜单按钮 -->
-          <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
-            <div class="w-6 h-6 flex flex-col justify-center items-center">
-              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
-              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
-              <div class="hamburger-line w-5 h-0.5 bg-gray-500"></div>
-            </div>
           </button>
         </div>
         
@@ -250,7 +251,7 @@
           <i class="fa fa-search text-gray-300"></i>
         </div>
         <input type="text" id="mobileSearchInput" placeholder="Pesquisar pedidos..." 
-          class="w-full pl-10 pr-4 py-2 border border-gray-100 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           oninput="searchOrders()">
         <button class="absolute inset-y-0 right-0 pr-3 flex items-center" onclick="toggleMobileSearch()">
           <i class="fa fa-times text-gray-400 hover:text-gray-600"></i>
