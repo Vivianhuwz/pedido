@@ -173,8 +173,17 @@
     <!-- Logo和标题区域 -->
     <div class="px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <!-- Logo和标题 -->
-        <div class="flex items-center space-x-3">
+        <!-- 移动端：左侧菜单按钮 -->
+        <div class="flex items-center">
+          <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors mr-3" onclick="toggleMobileMenu()">
+            <div class="w-6 h-6 flex flex-col justify-center items-center">
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
+              <div class="hamburger-line w-5 h-0.5 bg-gray-500"></div>
+            </div>
+          </button>
+          
+          <!-- 桌面版Logo和标题 -->
           <div class="hidden sm:block">
             <h1 class="text-lg font-semibold text-gray-500">YOUBAI</h1>
             <p class="text-xs text-gray-300">Sistema de Gerenciamento de Pedidos</p>
@@ -193,14 +202,13 @@
           </div>
         </div>
         
-        <!-- 移动端菜单按钮 -->
-        <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="toggleMobileMenu()">
-          <div class="w-6 h-6 flex flex-col justify-center items-center">
-            <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
-            <div class="hamburger-line w-5 h-0.5 bg-gray-500 mb-1"></div>
-            <div class="hamburger-line w-5 h-0.5 bg-gray-500"></div>
-          </div>
-        </button>
+        <!-- 移动端：右侧YOUBAI标识 -->
+        <div class="md:hidden">
+          <h1 class="text-lg font-semibold text-gray-500">YOUBAI</h1>
+        </div>
+        
+        <!-- 桌面版：右侧空白区域（保持平衡） -->
+        <div class="hidden md:block w-16"></div>
       </div>
     </div>
     
