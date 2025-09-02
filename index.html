@@ -55,7 +55,7 @@
     }
     
     /* 响应式设计 */
-    @media (max-width: 1024px) {
+    @media (max-width: 1366px) {
       #customerSidebar {
         width: 280px !important;
       }
@@ -3018,7 +3018,7 @@
         const sidebar = document.getElementById('customerSidebar');
         const mainContent = document.getElementById('mainContent');
         const isMobile = window.innerWidth <= 768;
-        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1366; // 扩大平板范围
         
         customerSidebarVisible = !customerSidebarVisible;
         
@@ -3170,7 +3170,7 @@
         
         // 检查屏幕尺寸并设置客户侧边栏的初始状态
         const isMobile = window.innerWidth <= 768;
-        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1366; // 扩大平板范围
         const sidebar = document.getElementById('customerSidebar');
         
         if (isMobile) {
@@ -3213,7 +3213,7 @@
     window.addEventListener('resize', function() {
         const sidebar = document.getElementById('customerSidebar');
         const isMobile = window.innerWidth <= 768;
-        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+         const isTablet = window.innerWidth > 768 && window.innerWidth <= 1366; // 扩大平板范围
         
         if (customerSidebarVisible) {
             if (isMobile) {
