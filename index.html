@@ -1361,35 +1361,68 @@
       updateSyncStatus('正在同步到云端...', 'syncing');
       
       try {
-        // 准备数据
-        const dataToSync = orders.map(order => ({
-          id: order.id,
-          nf: order.nf || null,
-          pedido: order.pedido || null,
-          company: order.company || '',
-          issue_date: order.issueDate || null,
-          final_value: parseFloat(order.finalValue) || 0,
-          order_type_description: order.orderTypeDescription || null,
-          representative: order.representative || null,
-          status: order.status || 'Aguardando',
-          cx: order.cx || null,
-          operator: order.operator || null,
-          updated_at: new Date().toISOString()
-        }));
-        
-        // 使用upsert来插入或更新数据
-        const { data, error } = await supabase
+        // 首先获取云端所有数据的ID
+        const { data: cloudData, error: selectError } = await supabase
           .from(window.DB_CONFIG.tableName)
-          .upsert(dataToSync, { 
-            onConflict: 'id',
-            ignoreDuplicates: false 
-          });
+          .select('id');
         
-        if (error) {
-          throw error;
+        if (selectError) {
+          throw selectError;
         }
         
-        console.log('数据同步到云端成功:', data);
+        // 获取本地数据的ID
+        const localIds = orders.map(order => order.id);
+        const cloudIds = cloudData ? cloudData.map(item => item.id) : [];
+        
+        // 找出需要删除的云端记录（存在于云端但不存在于本地）
+        const idsToDelete = cloudIds.filter(id => !localIds.includes(id));
+        
+        // 删除云端中不存在于本地的记录
+        if (idsToDelete.length > 0) {
+          const { error: deleteError } = await supabase
+            .from(window.DB_CONFIG.tableName)
+            .delete()
+            .in('id', idsToDelete);
+          
+          if (deleteError) {
+            throw deleteError;
+          }
+          
+          console.log(`已从云端删除 ${idsToDelete.length} 条记录:`, idsToDelete);
+        }
+        
+        // 准备本地数据进行同步
+        if (orders.length > 0) {
+          const dataToSync = orders.map(order => ({
+            id: order.id,
+            nf: order.nf || null,
+            pedido: order.pedido || null,
+            company: order.company || '',
+            issue_date: order.issueDate || null,
+            final_value: parseFloat(order.finalValue) || 0,
+            order_type_description: order.orderTypeDescription || null,
+            representative: order.representative || null,
+            status: order.status || 'Aguardando',
+            cx: order.cx || null,
+            operator: order.operator || null,
+            updated_at: new Date().toISOString()
+          }));
+          
+          // 使用upsert来插入或更新数据
+          const { data, error } = await supabase
+            .from(window.DB_CONFIG.tableName)
+            .upsert(dataToSync, { 
+              onConflict: 'id',
+              ignoreDuplicates: false 
+            });
+          
+          if (error) {
+            throw error;
+          }
+          
+          console.log('数据同步到云端成功:', data);
+        }
+        
         updateSyncStatus('已同步到云端', 'success');
         localStorage.setItem('lastCloudSync', new Date().toISOString());
         return true;
