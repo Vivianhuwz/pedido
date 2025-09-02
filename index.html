@@ -150,14 +150,19 @@
     // 更新订单数据
     order[field] = newValue;
     
+    // 如果NF字段有数据，自动将Status改为Concluído
+    if (field === 'nf' && newValue && newValue.trim() !== '') {
+        order.status = 'Concluído';
+        showNotification('NF atualizado e status alterado para Concluído!', 'success');
+    } else {
+        showNotification('Campo atualizado com sucesso!', 'success');
+    }
+    
     // 保存到本地存储
     saveToLocalStorage();
     
     // 重新应用过滤器和更新显示
     applyFilters();
-    
-    // 显示成功提示
-    showNotification('Campo atualizado com sucesso!', 'success');
     
     currentEditingCell = null;
   }
@@ -2093,10 +2098,12 @@
             const orderIndex = orders.findIndex(o => o.id === orderId);
             
             if (orderIndex !== -1) {
+                const nfValue = document.getElementById('editNf').value;
+                
                 // 更新订单数据
                 orders[orderIndex] = {
                     ...orders[orderIndex],
-                    nf: document.getElementById('editNf').value,
+                    nf: nfValue,
                     company: document.getElementById('editCompany').value,
                     issueDate: document.getElementById('editIssueDate').value,
                     finalValue: parseFloat(document.getElementById('editFinalValue').value),
@@ -2108,6 +2115,11 @@
                     updatedAt: new Date().toISOString()
                 };
                 
+                // 如果NF字段有值，自动更新状态为"Concluído"
+                if (nfValue && nfValue.trim() !== '') {
+                    orders[orderIndex].status = 'Concluído';
+                }
+                
                 // Salvar alterações
                 saveToLocalStorage();
                 
@@ -2118,7 +2130,11 @@
                 closeEditOrderModal();
                 
                 // 显示成功消息
-                showNotification('Pedido atualizado com sucesso!', 'success');
+                if (nfValue && nfValue.trim() !== '') {
+                    showNotification('Pedido atualizado com sucesso! Status automaticamente alterado para Concluído.', 'success');
+                } else {
+                    showNotification('Pedido atualizado com sucesso!', 'success');
+                }
             }
         });
         
@@ -2355,10 +2371,12 @@
     document.getElementById('orderForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
+        const nfValue = document.getElementById('nf').value;
+        
         // 获取表单数据
         const formData = {
             id: orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1,
-            nf: document.getElementById('nf').value,
+            nf: nfValue,
             company: document.getElementById('company').value,
             issueDate: document.getElementById('issueDate').value,
             finalValue: parseFloat(document.getElementById('finalValue').value),
@@ -2369,6 +2387,11 @@
             operator: document.getElementById('operator').value,
             createdAt: new Date().toISOString()
         };
+        
+        // 如果NF字段有值，自动设置状态为"Concluído"
+        if (nfValue && nfValue.trim() !== '') {
+            formData.status = 'Concluído';
+        }
         
         // 添加到订单数组
         orders.push(formData);
@@ -2383,7 +2406,11 @@
         closeAddOrderModal();
         
         // 显示成功消息
-        showNotification('Pedido adicionado com sucesso!', 'success');
+        if (nfValue && nfValue.trim() !== '') {
+            showNotification('Pedido adicionado com sucesso! Status automaticamente definido como Concluído.', 'success');
+        } else {
+            showNotification('Pedido adicionado com sucesso!', 'success');
+        }
     });
     
     // 处理文件导入
