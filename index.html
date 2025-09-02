@@ -71,6 +71,22 @@
         grid-template-columns: 280px 1fr;
         gap: 1.5rem;
       }
+      
+      /* 当客户侧边栏隐藏时，主要内容区域占用全部宽度 */
+      #customerSidebar[style*="width: 0"],
+      #customerSidebar[style*="opacity: 0"] {
+        display: none !important;
+      }
+      
+      #customerSidebar[style*="width: 0"] ~ #mainContent,
+      #customerSidebar[style*="opacity: 0"] ~ #mainContent {
+        grid-column: 1 / -1;
+      }
+      
+      .main-layout:has(#customerSidebar[style*="width: 0"]),
+      .main-layout:has(#customerSidebar[style*="opacity: 0"]) {
+        grid-template-columns: 1fr;
+      }
     }
     
     /* 桌面设备 (大于1366px) */
@@ -87,6 +103,22 @@
         display: grid;
         grid-template-columns: 320px 1fr;
         gap: 2rem;
+      }
+      
+      /* 当客户侧边栏隐藏时，主要内容区域占用全部宽度 */
+      #customerSidebar[style*="width: 0"],
+      #customerSidebar[style*="opacity: 0"] {
+        display: none !important;
+      }
+      
+      #customerSidebar[style*="width: 0"] ~ #mainContent,
+      #customerSidebar[style*="opacity: 0"] ~ #mainContent {
+        grid-column: 1 / -1;
+      }
+      
+      .main-layout:has(#customerSidebar[style*="width: 0"]),
+      .main-layout:has(#customerSidebar[style*="opacity: 0"]) {
+        grid-template-columns: 1fr;
       }
     }
     
@@ -108,6 +140,12 @@
       
       .main-layout {
         display: block;
+      }
+      
+      /* 移动端表格在客户侧边栏隐藏时自动扩展 */
+      #mainContent {
+        width: 100%;
+        transition: all 0.3s ease;
       }
     }
     
@@ -140,6 +178,21 @@
     
     #customerList::-webkit-scrollbar-thumb:hover {
       background: #a8a8a8;
+    }
+    
+    /* 客户侧边栏隐藏时的通用样式 */
+    .sidebar-hidden .main-layout {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .sidebar-hidden #customerSidebar {
+      display: none !important;
+    }
+    
+    .sidebar-hidden #mainContent {
+      grid-column: 1 / -1;
+      width: 100%;
+      max-width: 100%;
     }
   </style>
   
@@ -3064,6 +3117,7 @@
     function toggleCustomerSidebar() {
         const sidebar = document.getElementById('customerSidebar');
         const mainContent = document.getElementById('mainContent');
+        const mainElement = document.querySelector('main');
         const isMobile = window.innerWidth <= 640; // 调整为640px
         const isTablet = window.innerWidth >= 641 && window.innerWidth <= 1366; // 平板范围641-1366px
         const isDesktop = window.innerWidth > 1366;
@@ -3071,6 +3125,8 @@
         customerSidebarVisible = !customerSidebarVisible;
         
         if (customerSidebarVisible) {
+            // 显示客户侧边栏
+            mainElement.classList.remove('sidebar-hidden');
             if (isMobile) {
                 sidebar.classList.remove('hidden-mobile');
                 sidebar.style.transform = 'translateX(0)';
@@ -3091,10 +3147,12 @@
                 sidebar.style.display = 'block';
             }
         } else {
+            // 隐藏客户侧边栏，让表格扩展到全宽
             if (isMobile) {
                 sidebar.classList.add('hidden-mobile');
                 sidebar.style.transform = 'translateX(-100%)';
             } else {
+                mainElement.classList.add('sidebar-hidden');
                 sidebar.style.width = '0';
                 sidebar.style.opacity = '0';
             }
@@ -3229,6 +3287,7 @@
         const isTablet = window.innerWidth >= 641 && window.innerWidth <= 1366; // 平板范围641-1366px
         const isDesktop = window.innerWidth > 1366;
         const sidebar = document.getElementById('customerSidebar');
+        const mainElement = document.querySelector('main');
         
         if (isMobile) {
             // 移动设备：默认隐藏
@@ -3236,6 +3295,7 @@
             sidebar.classList.add('hidden-mobile');
             sidebar.style.transform = 'translateX(-100%)';
             sidebar.style.position = 'fixed';
+            mainElement.classList.remove('sidebar-hidden');
             updateToggleButton();
         } else if (isTablet) {
             // 平板设备：确保显示，使用grid布局
@@ -3246,6 +3306,7 @@
             sidebar.style.transform = 'translateX(0)';
             sidebar.style.position = 'relative';
             sidebar.style.display = 'block';
+            mainElement.classList.remove('sidebar-hidden');
             updateToggleButton();
         } else if (isDesktop) {
             // 桌面设备：确保显示，使用grid布局
@@ -3256,6 +3317,7 @@
             sidebar.style.transform = 'translateX(0)';
             sidebar.style.position = 'relative';
             sidebar.style.display = 'block';
+            mainElement.classList.remove('sidebar-hidden');
             updateToggleButton();
         }
     }
@@ -3276,11 +3338,13 @@
     // 添加窗口大小变化监听器 - 参考云收账系统优化
     window.addEventListener('resize', function() {
         const sidebar = document.getElementById('customerSidebar');
+        const mainElement = document.querySelector('main');
         const isMobile = window.innerWidth <= 640; // 调整为640px
         const isTablet = window.innerWidth >= 641 && window.innerWidth <= 1366; // 平板范围641-1366px
         const isDesktop = window.innerWidth > 1366;
         
         if (customerSidebarVisible) {
+            mainElement.classList.remove('sidebar-hidden');
             if (isMobile) {
                 sidebar.classList.remove('hidden-mobile');
                 sidebar.style.transform = 'translateX(0)';
@@ -3301,6 +3365,11 @@
                 sidebar.style.transform = 'translateX(0)';
                 sidebar.style.position = 'relative';
                 sidebar.style.display = 'block';
+            }
+        } else {
+            // 当侧边栏隐藏时，确保表格能扩展到全宽
+            if (!isMobile) {
+                mainElement.classList.add('sidebar-hidden');
             }
         }
     });
