@@ -3017,8 +3017,8 @@
     function toggleCustomerSidebar() {
         const sidebar = document.getElementById('customerSidebar');
         const mainContent = document.getElementById('mainContent');
-        const toggleBtn = document.getElementById('customerSidebarToggle');
         const isMobile = window.innerWidth <= 768;
+        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
         
         customerSidebarVisible = !customerSidebarVisible;
         
@@ -3026,13 +3026,14 @@
             if (isMobile) {
                 sidebar.classList.remove('hidden-mobile');
                 sidebar.style.transform = 'translateX(0)';
+            } else if (isTablet) {
+                sidebar.style.width = '280px';
+                sidebar.style.opacity = '1';
+                sidebar.style.transform = 'translateX(0)';
             } else {
                 sidebar.style.width = '320px';
                 sidebar.style.opacity = '1';
             }
-            toggleBtn.innerHTML = '<i class="fa fa-users mr-1 sm:mr-2"></i><span class="hidden sm:inline">Clientes</span><span class="sm:hidden">Clientes</span>';
-            toggleBtn.classList.remove('bg-gray-100');
-            toggleBtn.classList.add('bg-blue-100', 'text-blue-600');
         } else {
             if (isMobile) {
                 sidebar.classList.add('hidden-mobile');
@@ -3041,10 +3042,9 @@
                 sidebar.style.width = '0';
                 sidebar.style.opacity = '0';
             }
-            toggleBtn.innerHTML = '<i class="fa fa-users mr-1 sm:mr-2"></i><span class="hidden sm:inline">Mostrar Clientes</span><span class="sm:hidden">Mostrar</span>';
-            toggleBtn.classList.remove('bg-blue-100', 'text-blue-600');
-            toggleBtn.classList.add('bg-gray-100', 'text-gray-600');
         }
+        
+        updateToggleButton();
     }
 
     // 聚合客户数据
@@ -3167,7 +3167,73 @@
     // 初始化客户管理功能
     function initializeCustomerManagement() {
         renderCustomerList();
+        
+        // 检查屏幕尺寸并设置客户侧边栏的初始状态
+        const isMobile = window.innerWidth <= 768;
+        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+        const sidebar = document.getElementById('customerSidebar');
+        
+        if (isMobile) {
+            // 移动设备：默认隐藏
+            customerSidebarVisible = false;
+            sidebar.classList.add('hidden-mobile');
+            sidebar.style.transform = 'translateX(-100%)';
+            updateToggleButton();
+        } else if (isTablet) {
+            // 平板设备：确保显示
+            customerSidebarVisible = true;
+            sidebar.classList.remove('hidden-mobile');
+            sidebar.style.width = '280px';
+            sidebar.style.opacity = '1';
+            sidebar.style.transform = 'translateX(0)';
+            updateToggleButton();
+        } else {
+            // 桌面设备：确保显示
+            customerSidebarVisible = true;
+            sidebar.style.width = '320px';
+            sidebar.style.opacity = '1';
+            updateToggleButton();
+        }
     }
+    
+    function updateToggleButton() {
+        const toggleBtn = document.getElementById('customerSidebarToggle');
+        if (customerSidebarVisible) {
+            toggleBtn.innerHTML = '<i class="fa fa-users mr-1 sm:mr-2"></i><span class="hidden sm:inline">Clientes</span><span class="sm:hidden">Clientes</span>';
+            toggleBtn.classList.remove('bg-gray-100', 'text-gray-600');
+            toggleBtn.classList.add('bg-blue-100', 'text-blue-600');
+        } else {
+            toggleBtn.innerHTML = '<i class="fa fa-users mr-1 sm:mr-2"></i><span class="hidden sm:inline">Mostrar Clientes</span><span class="sm:hidden">Mostrar</span>';
+            toggleBtn.classList.remove('bg-blue-100', 'text-blue-600');
+            toggleBtn.classList.add('bg-gray-100', 'text-gray-600');
+        }
+    }
+    
+    // 添加窗口大小变化监听器
+    window.addEventListener('resize', function() {
+        const sidebar = document.getElementById('customerSidebar');
+        const isMobile = window.innerWidth <= 768;
+        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
+        
+        if (customerSidebarVisible) {
+            if (isMobile) {
+                sidebar.classList.remove('hidden-mobile');
+                sidebar.style.transform = 'translateX(0)';
+                sidebar.style.width = '';
+                sidebar.style.opacity = '';
+            } else if (isTablet) {
+                sidebar.classList.remove('hidden-mobile');
+                sidebar.style.width = '280px';
+                sidebar.style.opacity = '1';
+                sidebar.style.transform = 'translateX(0)';
+            } else {
+                sidebar.classList.remove('hidden-mobile');
+                sidebar.style.width = '320px';
+                sidebar.style.opacity = '1';
+                sidebar.style.transform = 'translateX(0)';
+            }
+        }
+    });
 
   // Evitar perda de dados ao atualizar a página
   window.addEventListener('beforeunload', function(e) {
