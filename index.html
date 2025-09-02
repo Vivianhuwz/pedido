@@ -10,6 +10,12 @@
   <!-- Adicionar biblioteca SheetJS para processar arquivos Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
+  <!-- Supabase客户端库 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- 配置文件 -->
+  <script src="config.js"></script>
+  
   <script>
     tailwind.config = {
       theme: {
@@ -39,6 +45,138 @@
         document.getElementById('syncStatus').querySelector('span').textContent !== 'Sincronizado') {
       e.preventDefault();
       e.returnValue = '';
+    }
+  });
+  
+  // 双击编辑功能
+  let currentEditingCell = null;
+  
+  function editCell(cell) {
+    // 如果已经有单元格在编辑中，先保存
+    if (currentEditingCell && currentEditingCell !== cell) {
+      saveCellEdit(currentEditingCell);
+    }
+    
+    const field = cell.getAttribute('data-field');
+    const orderId = parseInt(cell.getAttribute('data-order-id'));
+    const order = orders.find(o => o.id === orderId);
+    
+    if (!order) return;
+    
+    // 获取当前值
+    let currentValue = order[field] || '';
+    
+    // 对于特殊字段的处理
+    if (field === 'finalValue') {
+      currentValue = order[field] || 0;
+    } else if (field === 'issueDate') {
+      if (currentValue) {
+        const date = new Date(currentValue);
+        currentValue = date.toISOString().split('T')[0];
+      }
+    }
+    
+    // 创建输入框
+    const input = document.createElement('input');
+    input.className = 'cell-input';
+    input.value = currentValue;
+    
+    // 根据字段类型设置输入框类型
+    if (field === 'finalValue') {
+      input.type = 'number';
+      input.step = '0.01';
+      input.min = '0';
+    } else if (field === 'issueDate') {
+      input.type = 'date';
+    } else {
+      input.type = 'text';
+    }
+    
+    // 保存原始内容
+    cell.setAttribute('data-original-content', cell.innerHTML);
+    
+    // 替换单元格内容
+    cell.innerHTML = '';
+    cell.appendChild(input);
+    cell.classList.add('editing-cell');
+    
+    // 聚焦并选中文本
+    input.focus();
+    if (input.type === 'text') {
+      input.select();
+    }
+    
+    currentEditingCell = cell;
+    
+    // 添加事件监听器
+    input.addEventListener('blur', () => saveCellEdit(cell));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        saveCellEdit(cell);
+      } else if (e.key === 'Escape') {
+        cancelCellEdit(cell);
+      }
+    });
+  }
+  
+  function saveCellEdit(cell) {
+    if (!cell || !cell.classList.contains('editing-cell')) return;
+    
+    const input = cell.querySelector('.cell-input');
+    if (!input) return;
+    
+    const field = cell.getAttribute('data-field');
+    const orderId = parseInt(cell.getAttribute('data-order-id'));
+    const order = orders.find(o => o.id === orderId);
+    
+    if (!order) {
+      cancelCellEdit(cell);
+      return;
+    }
+    
+    let newValue = input.value.trim();
+    
+    // 验证和转换值
+    if (field === 'finalValue') {
+      newValue = parseFloat(newValue) || 0;
+    } else if (field === 'issueDate') {
+      if (newValue && !isNaN(new Date(newValue).getTime())) {
+        newValue = new Date(newValue).toISOString();
+      } else {
+        newValue = order[field]; // 保持原值
+      }
+    }
+    
+    // 更新订单数据
+    order[field] = newValue;
+    
+    // 保存到本地存储
+    saveToLocalStorage();
+    
+    // 重新应用过滤器和更新显示
+    applyFilters();
+    
+    // 显示成功提示
+    showNotification('Campo atualizado com sucesso!', 'success');
+    
+    currentEditingCell = null;
+  }
+  
+  function cancelCellEdit(cell) {
+    if (!cell || !cell.classList.contains('editing-cell')) return;
+    
+    const originalContent = cell.getAttribute('data-original-content');
+    cell.innerHTML = originalContent;
+    cell.classList.remove('editing-cell');
+    cell.removeAttribute('data-original-content');
+    
+    currentEditingCell = null;
+  }
+  
+  // 点击其他地方时保存编辑
+  document.addEventListener('click', (e) => {
+    if (currentEditingCell && !currentEditingCell.contains(e.target) && !e.target.classList.contains('cell-input')) {
+      saveCellEdit(currentEditingCell);
     }
   });
   </script>
@@ -98,14 +236,14 @@
     }
     
     .mobile-nav-item.active {
-      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-      color: #374151;
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+      color: white !important;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(156, 163, 175, 0.3);
+      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
     }
     
     .mobile-nav-item:hover:not(.active) {
-      background-color: #e0f2fe;
+      background-color: #ffffff;
       transform: translateY(-1px);
     }
 
@@ -170,6 +308,36 @@
       color: #2563eb;
     }
 
+    /* 可编辑单元格样式 */
+    .editable-cell {
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .editable-cell:hover {
+      background-color: #f8fafc;
+    }
+    
+    .editing-cell {
+      background-color: #e0f2fe !important;
+      padding: 0 !important;
+    }
+    
+    .cell-input {
+      width: 100%;
+      height: 100%;
+      border: 2px solid #2563eb;
+      padding: 8px;
+      font-size: inherit;
+      font-family: inherit;
+      background: white;
+      outline: none;
+    }
+    
+    .cell-input:focus {
+      border-color: #1d4ed8;
+    }
+
     /* 移动端优化 */
     @media (max-width: 768px) {
       .mobile-nav-scroll {
@@ -187,6 +355,10 @@
       
       .company-logo:hover {
         transform: scale(1.02);
+      }
+      
+      .editable-cell:hover {
+        background-color: transparent;
       }
     }
   </style>
@@ -492,7 +664,6 @@
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">CX</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Operador</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Modalidade de entrega</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Ações</th>
               </tr>
             </thead>
@@ -879,12 +1050,10 @@
       document.getElementById('updateStatus').checked = false;
       document.getElementById('updateRepresentative').checked = false;
       document.getElementById('updateOperator').checked = false;
-      document.getElementById('updateDeliveryMode').checked = false;
       
       document.getElementById('batchStatus').disabled = true;
       document.getElementById('batchRepresentative').disabled = true;
       document.getElementById('batchOperator').disabled = true;
-      document.getElementById('batchDeliveryMode').disabled = true;
       
       // 默认选择更新操作
       document.querySelector('input[name="operationType"][value="update"]').checked = true;
@@ -901,10 +1070,6 @@
       
       document.getElementById('updateOperator').addEventListener('change', function() {
         document.getElementById('batchOperator').disabled = !this.checked;
-      });
-      
-      document.getElementById('updateDeliveryMode').addEventListener('change', function() {
-        document.getElementById('batchDeliveryMode').disabled = !this.checked;
       });
       
       // 添加操作类型切换事件
@@ -926,9 +1091,8 @@
             const updateStatus = document.getElementById('updateStatus').checked;
             const updateRepresentative = document.getElementById('updateRepresentative').checked;
             const updateOperator = document.getElementById('updateOperator').checked;
-            const updateDeliveryMode = document.getElementById('updateDeliveryMode').checked;
             
-            if (!updateStatus && !updateRepresentative && !updateOperator && !updateDeliveryMode) {
+            if (!updateStatus && !updateRepresentative && !updateOperator) {
                 alert('Por favor, selecione pelo menos um campo para atualizar.');
                 return;
             }
@@ -936,7 +1100,6 @@
             const newStatus = updateStatus ? document.getElementById('batchStatus').value : null;
             const newRepresentative = updateRepresentative ? document.getElementById('batchRepresentative').value : null;
             const newOperator = updateOperator ? document.getElementById('batchOperator').value : null;
-            const newDeliveryMode = updateDeliveryMode ? document.getElementById('batchDeliveryMode').value : null;
             
             // 更新选中的订单
             selectedOrderIds.forEach(id => {
@@ -945,7 +1108,6 @@
                     if (updateStatus) orders[orderIndex].status = newStatus;
                     if (updateRepresentative) orders[orderIndex].representative = newRepresentative;
                     if (updateOperator) orders[orderIndex].operator = newOperator;
-                    if (updateDeliveryMode) orders[orderIndex].deliveryMode = newDeliveryMode;
                     orders[orderIndex].updatedAt = new Date().toISOString();
                 }
             });
@@ -1006,8 +1168,7 @@
         representative: "João Silva",
         status: "Concluído",
         cx: "CX001",
-        operator: "Maria Santos",
-        deliveryMode: "Entrega Expressa"
+        operator: "Maria Santos"
       },
       {
         id: 2,
@@ -1019,8 +1180,7 @@
         representative: "Ana Costa",
         status: "Processando",
         cx: "CX002",
-        operator: "Pedro Lima",
-        deliveryMode: "Entrega Normal"
+        operator: "Pedro Lima"
       },
       {
         id: 3,
@@ -1032,8 +1192,7 @@
         representative: "Carlos Mendes",
         status: "Aguardando",
         cx: "CX003",
-        operator: "Lucia Ferreira",
-        deliveryMode: "Retirada no Local"
+        operator: "Lucia Ferreira"
       },
       {
         id: 4,
@@ -1045,13 +1204,198 @@
         representative: "João Silva",
         status: "Processando",
         cx: "CX004",
-        operator: "Ana Oliveira",
-        deliveryMode: "Entrega Normal"
+        operator: "Ana Oliveira"
       }
     ];
     
     // 过滤后的订单数组
     let filteredOrders = [];
+    
+    // Supabase客户端
+    let supabase = null;
+    let isSupabaseInitialized = false;
+    
+    // 初始化Supabase
+    async function initializeSupabase() {
+      try {
+        if (typeof window.SUPABASE_CONFIG === 'undefined') {
+          console.warn('Supabase配置未找到，跳过云同步功能');
+          return false;
+        }
+        
+        supabase = window.supabase.createClient(
+          window.SUPABASE_CONFIG.url,
+          window.SUPABASE_CONFIG.anonKey
+        );
+        
+        // 测试连接
+        const { data, error } = await supabase
+          .from(window.DB_CONFIG.tableName)
+          .select('count', { count: 'exact', head: true });
+        
+        if (error) {
+          console.error('Supabase连接测试失败:', error);
+          return false;
+        }
+        
+        isSupabaseInitialized = true;
+        console.log('Supabase初始化成功');
+        updateSyncStatus('已连接到云端', 'success');
+        
+        // 启动自动同步
+        if (window.SYNC_CONFIG.autoSync) {
+          startAutoSync();
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Supabase初始化失败:', error);
+        updateSyncStatus('云端连接失败', 'error');
+        return false;
+      }
+    }
+    
+    // 同步数据到云端
+    async function syncToCloud() {
+      if (!isSupabaseInitialized) {
+        console.warn('Supabase未初始化，无法同步到云端');
+        return false;
+      }
+      
+      updateSyncStatus('正在同步到云端...', 'syncing');
+      
+      try {
+        // 准备数据
+        const dataToSync = orders.map(order => ({
+          id: order.id,
+          nf: order.nf || null,
+          pedido: order.pedido || null,
+          company: order.company || '',
+          issue_date: order.issueDate || null,
+          final_value: parseFloat(order.finalValue) || 0,
+          order_type_description: order.orderTypeDescription || null,
+          representative: order.representative || null,
+          status: order.status || 'Aguardando',
+          cx: order.cx || null,
+          operator: order.operator || null,
+          updated_at: new Date().toISOString()
+        }));
+        
+        // 使用upsert来插入或更新数据
+        const { data, error } = await supabase
+          .from(window.DB_CONFIG.tableName)
+          .upsert(dataToSync, { 
+            onConflict: 'id',
+            ignoreDuplicates: false 
+          });
+        
+        if (error) {
+          throw error;
+        }
+        
+        console.log('数据同步到云端成功:', data);
+        updateSyncStatus('已同步到云端', 'success');
+        localStorage.setItem('lastCloudSync', new Date().toISOString());
+        return true;
+        
+      } catch (error) {
+        console.error('同步到云端失败:', error);
+        updateSyncStatus('同步失败', 'error');
+        return false;
+      }
+    }
+    
+    // 从云端加载数据
+    async function loadFromCloud() {
+      if (!isSupabaseInitialized) {
+        console.warn('Supabase未初始化，无法从云端加载数据');
+        return false;
+      }
+      
+      updateSyncStatus('正在从云端加载...', 'syncing');
+      
+      try {
+        const { data, error } = await supabase
+          .from(window.DB_CONFIG.tableName)
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data.length > 0) {
+          // 转换数据格式
+          const cloudOrders = data.map(item => ({
+            id: item.id,
+            nf: item.nf,
+            pedido: item.pedido,
+            company: item.company,
+            issueDate: item.issue_date,
+            finalValue: parseFloat(item.final_value) || 0,
+            orderTypeDescription: item.order_type_description,
+            representative: item.representative,
+            status: item.status,
+            cx: item.cx,
+            operator: item.operator,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at
+          }));
+          
+          // 合并云端数据和本地数据
+          const mergedOrders = mergeOrderData(orders, cloudOrders);
+          orders = mergedOrders;
+          
+          // 保存到本地存储
+          saveToLocalStorage();
+          
+          // 更新显示
+          applyFilters();
+          
+          console.log('从云端加载数据成功:', cloudOrders.length, '条记录');
+          updateSyncStatus('已从云端加载', 'success');
+          localStorage.setItem('lastCloudLoad', new Date().toISOString());
+          return true;
+        } else {
+          console.log('云端暂无数据');
+          updateSyncStatus('云端暂无数据', 'success');
+          return true;
+        }
+        
+      } catch (error) {
+        console.error('从云端加载数据失败:', error);
+        updateSyncStatus('加载失败', 'error');
+        return false;
+      }
+    }
+    
+    // 合并订单数据（云端优先）
+    function mergeOrderData(localOrders, cloudOrders) {
+      const merged = [...cloudOrders];
+      
+      // 添加本地独有的数据
+      localOrders.forEach(localOrder => {
+        const existsInCloud = cloudOrders.find(cloudOrder => cloudOrder.id === localOrder.id);
+        if (!existsInCloud) {
+          merged.push(localOrder);
+        }
+      });
+      
+      return merged;
+    }
+    
+    // 启动自动同步
+    function startAutoSync() {
+      if (window.SYNC_CONFIG.autoSync && window.SYNC_CONFIG.syncInterval > 0) {
+        setInterval(async () => {
+          if (isSupabaseInitialized) {
+            await syncToCloud();
+          }
+        }, window.SYNC_CONFIG.syncInterval);
+        
+        console.log('自动同步已启动，间隔:', window.SYNC_CONFIG.syncInterval, 'ms');
+      }
+    }
     
     // 初始化搜索功能
     function initializeSearch() {
@@ -1174,7 +1518,7 @@
         if (filteredOrders.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="13" class="px-6 py-8 text-center text-gray-400">
+                    <td colspan="12" class="px-6 py-8 text-center text-gray-400">
                         <i class="fa fa-search text-4xl mb-4 block"></i>
                         <p class="text-lg font-medium mb-2">Nenhum pedido encontrado</p>
                         <p class="text-sm">Tente ajustar os filtros de pesquisa</p>
@@ -1224,15 +1568,15 @@
                         <input type="checkbox" class="order-checkbox form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" 
                                data-order-id="${order.id}" onchange="updateBatchOperationsButton()">
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">${formatValue(order.nf)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${formatValue(order.pedido)}</td>
-                    <td class="px-3 py-2">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 editable-cell" data-field="nf" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.nf)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="pedido" data-order-id="${order.id}" ondblclick="editCell(this)">${formatPedido(order.pedido)}</td>
+                    <td class="px-3 py-2 editable-cell" data-field="company" data-order-id="${order.id}" ondblclick="editCell(this)">
                         <div class="text-sm font-medium text-gray-500">${formatCompanyName(order.company)}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${formatDate(order.issueDate)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">${formatCurrency(order.finalValue)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${formatValue(order.orderTypeDescription)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${formatValue(order.representative)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="issueDate" data-order-id="${order.id}" ondblclick="editCell(this)">${formatDate(order.issueDate)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)">${formatCurrency(order.finalValue)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="orderTypeDescription" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.orderTypeDescription)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="representative" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.representative)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.class} cursor-pointer hover:opacity-80" onclick="toggleStatusDropdown(${order.id}, event)">
                             <i class="fa ${statusInfo.icon} mr-1"></i>
@@ -1246,9 +1590,8 @@
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Cancelado')">Cancelado</div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${formatValue(order.cx)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${formatValue(order.operator)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${formatValue(order.deliveryMode)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.cx)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.operator)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
                             <button onclick="editOrder(${order.id})" class="text-primary hover:text-primary/80 transition-colors">
@@ -1342,6 +1685,20 @@
             return '';
         }
         return value;
+    }
+    
+    // 格式化Pedido字段 - 移除前导零
+    function formatPedido(value) {
+        if (value === undefined || value === null) {
+            return '';
+        }
+        // 将值转换为字符串并移除前导零
+        const stringValue = String(value);
+        // 使用parseInt然后转回字符串来移除前导零，但保持原始格式如果不是纯数字
+        if (/^\d+$/.test(stringValue)) {
+            return String(parseInt(stringValue, 10));
+        }
+        return stringValue;
     }
     
     // 显示添加订单模态框
@@ -1461,7 +1818,6 @@
             document.getElementById('editStatus').value = order.status || 'Pendente';
             document.getElementById('editCx').value = order.cx || '';
             document.getElementById('editOperator').value = order.operator || '';
-            document.getElementById('editDeliveryMode').value = order.deliveryMode || '';
             
             document.getElementById('editOrderModal').classList.remove('hidden');
         }
@@ -1492,9 +1848,8 @@
             const updateStatus = document.getElementById('updateStatus').checked;
             const updateRepresentative = document.getElementById('updateRepresentative').checked;
             const updateOperator = document.getElementById('updateOperator').checked;
-            const updateDeliveryMode = document.getElementById('updateDeliveryMode').checked;
             
-            if (!updateStatus && !updateRepresentative && !updateOperator && !updateDeliveryMode) {
+            if (!updateStatus && !updateRepresentative && !updateOperator) {
                 alert('Por favor, selecione pelo menos um campo para atualizar.');
                 return;
             }
@@ -1502,7 +1857,6 @@
             const newStatus = updateStatus ? document.getElementById('batchStatus').value : null;
             const newRepresentative = updateRepresentative ? document.getElementById('batchRepresentative').value : null;
             const newOperator = updateOperator ? document.getElementById('batchOperator').value : null;
-            const newDeliveryMode = updateDeliveryMode ? document.getElementById('batchDeliveryMode').value : null;
             
             // 更新选中的订单
             selectedOrderIds.forEach(id => {
@@ -1511,7 +1865,6 @@
                     if (updateStatus) orders[orderIndex].status = newStatus;
                     if (updateRepresentative) orders[orderIndex].representative = newRepresentative;
                     if (updateOperator) orders[orderIndex].operator = newOperator;
-                    if (updateDeliveryMode) orders[orderIndex].deliveryMode = newDeliveryMode;
                     orders[orderIndex].updatedAt = new Date().toISOString();
                 }
             });
@@ -1555,12 +1908,18 @@
       }
     }
 
-    // Salvar no localStorage
-    function saveToLocalStorage() {
+    // Salvar no localStorage e sincronizar com a nuvem
+    async function saveToLocalStorage() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
         console.log('Dados salvos no armazenamento local');
-        updateSyncStatus('Salvo localmente', 'success');
+        
+        // Tentar sincronizar com a nuvem se o Supabase estiver inicializado
+        if (isSupabaseInitialized) {
+          await syncToCloud();
+        } else {
+          updateSyncStatus('Salvo localmente', 'success');
+        }
       } catch (error) {
         console.error('Falha ao salvar no armazenamento local:', error);
         updateSyncStatus('Falha ao salvar', 'error');
@@ -1672,15 +2031,25 @@
     }
 
     // 页面加载完成后初始化
-    document.addEventListener('DOMContentLoaded', function() {
-        // Carregar dados do armazenamento local
-        loadFromLocalStorage();
+    document.addEventListener('DOMContentLoaded', async function() {
+        // 初始化Supabase
+        await initializeSupabase();
+        
+        // 先从云端加载数据，如果失败则从本地加载
+        const cloudLoadSuccess = await loadFromCloud();
+        if (!cloudLoadSuccess) {
+            // Carregar dados do armazenamento local
+            loadFromLocalStorage();
+        }
         
         // 初始化过滤器
         filterByStatus('all');
         
         // Adicionar elemento de status de sincronização
         addSyncStatusElement();
+        
+        // 启动自动同步
+        startAutoSync();
         
         // Configurar sincronização automática (a cada 5 minutos)
         setInterval(() => {
@@ -1719,7 +2088,6 @@
                     status: document.getElementById('editStatus').value,
                     cx: document.getElementById('editCx').value,
                     operator: document.getElementById('editOperator').value,
-                    deliveryMode: document.getElementById('editDeliveryMode').value,
                     updatedAt: new Date().toISOString()
                 };
                 
@@ -1817,11 +2185,6 @@
               <input type="text" id="operator" name="operator" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             
-            <div>
-              <label for="deliveryMode" class="block text-sm font-medium text-gray-700 mb-1">Modo de Entrega</label>
-              <input type="text" id="deliveryMode" name="deliveryMode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
             <div class="flex justify-end space-x-3 pt-4">
               <button type="button" onclick="closeAddOrderModal()" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
                 Cancelar
@@ -1902,11 +2265,6 @@
             <div>
               <label for="editOperator" class="block text-sm font-medium text-gray-700 mb-1">Operador</label>
               <input type="text" id="editOperator" name="editOperator" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div>
-              <label for="editDeliveryMode" class="block text-sm font-medium text-gray-700 mb-1">Modo de Entrega</label>
-              <input type="text" id="editDeliveryMode" name="editDeliveryMode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             
             <div class="flex justify-end space-x-3 pt-4">
@@ -1992,7 +2350,6 @@
             status: document.getElementById('status').value,
             cx: document.getElementById('cx').value,
             operator: document.getElementById('operator').value,
-            deliveryMode: document.getElementById('deliveryMode').value,
             createdAt: new Date().toISOString()
         };
         
@@ -2112,13 +2469,16 @@
                             }
                         }
                         
-                        if (item['NF']) item.nf = item['NF'];
+                        // 支持不同大小写的NF字段识别
+                        const nfKeys = Object.keys(item).filter(key => key.toLowerCase() === 'nf');
+                        if (nfKeys.length > 0) {
+                            item.nf = item[nfKeys[0]];
+                        }
                         if (item['Cliente']) item.company = item['Cliente'];
                         if (item['Desc Tipo Pedido']) item.orderTypeDescription = item['Desc Tipo Pedido'];
                         if (item['Representante']) item.representative = item['Representante'];
                         if (item['CX']) item.cx = item['CX'];
                         if (item['Operador']) item.operator = item['Operador'];
-                        if (item['Modalidade de entrega']) item.deliveryMode = item['Modalidade de entrega'];
                         
                         // 设置默认状态
                         if (!item.status) {
@@ -2129,8 +2489,29 @@
                         item.importedAt = new Date().toISOString();
                     });
                     
-                    // 添加到订单数组
-                    orders.push(...importedData);
+                    // 处理重复的Pedido号 - 如果存在相同Pedido号则覆盖
+                    let updatedCount = 0;
+                    let newCount = 0;
+                    
+                    importedData.forEach(newOrder => {
+                        // 查找是否存在相同的Pedido号
+                        const existingIndex = orders.findIndex(order => 
+                            order.pedido && newOrder.pedido && 
+                            order.pedido.toString() === newOrder.pedido.toString()
+                        );
+                        
+                        if (existingIndex !== -1) {
+                            // 如果找到重复的Pedido号，保留原有的ID并覆盖其他数据
+                            const originalId = orders[existingIndex].id;
+                            newOrder.id = originalId;
+                            orders[existingIndex] = newOrder;
+                            updatedCount++;
+                        } else {
+                            // 如果没有重复，直接添加到数组
+                            orders.push(newOrder);
+                            newCount++;
+                        }
+                    });
                     
                     // Salvar alterações
                     saveToLocalStorage();
@@ -2141,7 +2522,18 @@
                     // 关闭模态框
                     closeImportModal();
                     
-                    showNotification(`${importedData.length} pedidos importados com sucesso!`, 'success');
+                    // 显示详细的导入统计信息
+                    let message = '';
+                    if (newCount > 0 && updatedCount > 0) {
+                        message = `Importação concluída: ${newCount} novos pedidos adicionados, ${updatedCount} pedidos atualizados`;
+                    } else if (newCount > 0) {
+                        message = `${newCount} novos pedidos importados com sucesso!`;
+                    } else if (updatedCount > 0) {
+                        message = `${updatedCount} pedidos atualizados com sucesso!`;
+                    } else {
+                        message = 'Importação concluída, mas nenhum dado válido foi encontrado.';
+                    }
+                    showNotification(message, 'success');
                 } else {
                     showNotification('Nenhum dado encontrado no arquivo.', 'error');
                 }
@@ -2186,6 +2578,7 @@
             .status-processando { color: #165DFF; }
             .status-concluido { color: #00B42A; }
             .status-cancelado { color: #F53F3F; }
+            .nf-column { color: #16a34a; font-weight: bold; }
           </style>
         </head>
         <body>
@@ -2234,8 +2627,8 @@
         // 添加行数据
         printContent += `
           <tr>
-            <td>${formatValue(order.nf)}</td>
-            <td>${formatValue(order.pedido)}</td>
+            <td class="nf-column">${formatValue(order.nf)}</td>
+            <td>${formatPedido(order.pedido)}</td>
             <td>${formatValue(order.company)}</td>
             <td>${formatValue(order.issueDate)}</td>
             <td>${formattedValue}</td>
@@ -2268,9 +2661,22 @@
         // printWindow.close(); // 如果希望打印后自动关闭窗口，可以取消注释
       };
       
-      // 在打印窗口中定义formatValue函数
+      // 在打印窗口中定义formatValue和formatPedido函数
       printWindow.formatValue = function(value) {
         return value !== undefined && value !== null ? value : '';
+      };
+      
+      printWindow.formatPedido = function(value) {
+        if (value === undefined || value === null) {
+          return '';
+        }
+        // 将值转换为字符串并移除前导零
+        const stringValue = String(value);
+        // 使用parseInt然后转回字符串来移除前导零，但保持原始格式如果不是纯数字
+        if (/^\d+$/.test(stringValue)) {
+          return String(parseInt(stringValue, 10));
+        }
+        return stringValue;
       };
     }
     
@@ -2435,14 +2841,6 @@
                     <span class="ml-2">Operador</span>
                   </label>
                   <input type="text" id="batchOperator" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
-                </div>
-                
-                <div>
-                  <label class="inline-flex items-center">
-                    <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" id="updateDeliveryMode">
-                    <span class="ml-2">Modo de Entrega</span>
-                  </label>
-                  <input type="text" id="batchDeliveryMode" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
                 </div>
               </div>
             </div>
