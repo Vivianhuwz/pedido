@@ -54,25 +54,72 @@
       background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
     }
     
-    /* 响应式设计 */
-    @media (max-width: 1366px) {
+    /* 响应式设计 - 参考云收账系统优化 */
+    
+    /* 平板设备优化 (641px - 1366px) */
+    @media (min-width: 641px) and (max-width: 1366px) {
       #customerSidebar {
         width: 280px !important;
+        position: relative;
+        display: block;
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .main-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 1.5rem;
       }
     }
     
-    @media (max-width: 768px) {
+    /* 桌面设备 (大于1366px) */
+    @media (min-width: 1367px) {
+      #customerSidebar {
+        width: 320px !important;
+        position: relative;
+        display: block;
+        opacity: 1;
+        transform: translateX(0);
+      }
+      
+      .main-layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 2rem;
+      }
+    }
+    
+    /* 手机设备 (最大宽度: 640px) */
+    @media (max-width: 640px) {
       #customerSidebar {
         position: fixed;
         left: 0;
         top: 80px;
         height: calc(100vh - 80px);
+        width: 280px !important;
         z-index: 40;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
       }
       
       #customerSidebar.hidden-mobile {
         transform: translateX(-100%);
+      }
+      
+      .main-layout {
+        display: block;
+      }
+    }
+    
+    /* 触摸设备优化 */
+    @media (hover: none) and (pointer: coarse) {
+      .customer-item {
+        min-height: 44px;
+        padding: 12px;
+      }
+      
+      .customer-item:hover {
+        transform: none;
       }
     }
     
@@ -582,7 +629,7 @@
 
   <!-- 主要内容区域 -->
   <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6">
-    <div class="flex gap-6">
+    <div class="main-layout">
       <!-- 客户管理侧边栏 -->
       <div id="customerSidebar" class="w-80 bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300">
         <div class="p-4 border-b border-gray-100">
@@ -3017,8 +3064,9 @@
     function toggleCustomerSidebar() {
         const sidebar = document.getElementById('customerSidebar');
         const mainContent = document.getElementById('mainContent');
-        const isMobile = window.innerWidth <= 768;
-        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1366; // 扩大平板范围
+        const isMobile = window.innerWidth <= 640; // 调整为640px
+        const isTablet = window.innerWidth >= 641 && window.innerWidth <= 1366; // 平板范围641-1366px
+        const isDesktop = window.innerWidth > 1366;
         
         customerSidebarVisible = !customerSidebarVisible;
         
@@ -3026,13 +3074,21 @@
             if (isMobile) {
                 sidebar.classList.remove('hidden-mobile');
                 sidebar.style.transform = 'translateX(0)';
+                sidebar.style.position = 'fixed';
             } else if (isTablet) {
+                sidebar.classList.remove('hidden-mobile');
                 sidebar.style.width = '280px';
                 sidebar.style.opacity = '1';
                 sidebar.style.transform = 'translateX(0)';
-            } else {
+                sidebar.style.position = 'relative';
+                sidebar.style.display = 'block';
+            } else if (isDesktop) {
+                sidebar.classList.remove('hidden-mobile');
                 sidebar.style.width = '320px';
                 sidebar.style.opacity = '1';
+                sidebar.style.transform = 'translateX(0)';
+                sidebar.style.position = 'relative';
+                sidebar.style.display = 'block';
             }
         } else {
             if (isMobile) {
@@ -3168,9 +3224,10 @@
     function initializeCustomerManagement() {
         renderCustomerList();
         
-        // 检查屏幕尺寸并设置客户侧边栏的初始状态
-        const isMobile = window.innerWidth <= 768;
-        const isTablet = window.innerWidth > 768 && window.innerWidth <= 1366; // 扩大平板范围
+        // 检查屏幕尺寸并设置客户侧边栏的初始状态 - 参考云收账系统优化
+        const isMobile = window.innerWidth <= 640; // 调整为640px
+        const isTablet = window.innerWidth >= 641 && window.innerWidth <= 1366; // 平板范围641-1366px
+        const isDesktop = window.innerWidth > 1366;
         const sidebar = document.getElementById('customerSidebar');
         
         if (isMobile) {
@@ -3178,20 +3235,27 @@
             customerSidebarVisible = false;
             sidebar.classList.add('hidden-mobile');
             sidebar.style.transform = 'translateX(-100%)';
+            sidebar.style.position = 'fixed';
             updateToggleButton();
         } else if (isTablet) {
-            // 平板设备：确保显示
+            // 平板设备：确保显示，使用grid布局
             customerSidebarVisible = true;
             sidebar.classList.remove('hidden-mobile');
             sidebar.style.width = '280px';
             sidebar.style.opacity = '1';
             sidebar.style.transform = 'translateX(0)';
+            sidebar.style.position = 'relative';
+            sidebar.style.display = 'block';
             updateToggleButton();
-        } else {
-            // 桌面设备：确保显示
+        } else if (isDesktop) {
+            // 桌面设备：确保显示，使用grid布局
             customerSidebarVisible = true;
+            sidebar.classList.remove('hidden-mobile');
             sidebar.style.width = '320px';
             sidebar.style.opacity = '1';
+            sidebar.style.transform = 'translateX(0)';
+            sidebar.style.position = 'relative';
+            sidebar.style.display = 'block';
             updateToggleButton();
         }
     }
@@ -3209,11 +3273,12 @@
         }
     }
     
-    // 添加窗口大小变化监听器
+    // 添加窗口大小变化监听器 - 参考云收账系统优化
     window.addEventListener('resize', function() {
         const sidebar = document.getElementById('customerSidebar');
-        const isMobile = window.innerWidth <= 768;
-         const isTablet = window.innerWidth > 768 && window.innerWidth <= 1366; // 扩大平板范围
+        const isMobile = window.innerWidth <= 640; // 调整为640px
+        const isTablet = window.innerWidth >= 641 && window.innerWidth <= 1366; // 平板范围641-1366px
+        const isDesktop = window.innerWidth > 1366;
         
         if (customerSidebarVisible) {
             if (isMobile) {
@@ -3221,16 +3286,21 @@
                 sidebar.style.transform = 'translateX(0)';
                 sidebar.style.width = '';
                 sidebar.style.opacity = '';
+                sidebar.style.position = 'fixed';
             } else if (isTablet) {
                 sidebar.classList.remove('hidden-mobile');
                 sidebar.style.width = '280px';
                 sidebar.style.opacity = '1';
                 sidebar.style.transform = 'translateX(0)';
-            } else {
+                sidebar.style.position = 'relative';
+                sidebar.style.display = 'block';
+            } else if (isDesktop) {
                 sidebar.classList.remove('hidden-mobile');
                 sidebar.style.width = '320px';
                 sidebar.style.opacity = '1';
                 sidebar.style.transform = 'translateX(0)';
+                sidebar.style.position = 'relative';
+                sidebar.style.display = 'block';
             }
         }
     });
