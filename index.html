@@ -711,7 +711,7 @@
       <!-- 主要内容区域 -->
       <div id="mainContent" class="flex-1 transition-all duration-300">
       <!-- Painel de estatísticas -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total de pedidos -->
         <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
           <div class="flex items-center justify-between">
@@ -776,6 +776,23 @@
             </div>
             <div class="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center ml-2">
               <i class="fa fa-money text-sm sm:text-xl text-blue-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Total de Clientes -->
+        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
+          <div class="flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Total de Clientes</p>
+              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="totalClients">0</p>
+              <p class="text-xs text-purple-500 mt-1 hidden sm:block">
+                <i class="fa fa-arrow-up"></i>
+                <span id="clientsGrowth">0%</span> em relação ao mês anterior
+              </p>
+            </div>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-users text-sm sm:text-xl text-purple-600"></i>
             </div>
           </div>
         </div>
@@ -1913,10 +1930,14 @@
         const completed = filteredOrders.filter(order => ['Concluído', 'Finalizado'].includes(order.status)).length;
         const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.finalValue, 0);
         
+        // 计算唯一客户数量
+        const uniqueClients = new Set(filteredOrders.map(order => order.company).filter(company => company && company.trim() !== '')).size;
+        
         document.getElementById('totalOrders').textContent = total;
         document.getElementById('pendingOrders').textContent = pending;
         document.getElementById('completedOrders').textContent = completed;
         document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
+        document.getElementById('totalClients').textContent = uniqueClients;
     }
     
     // 格式化货币
