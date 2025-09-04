@@ -330,6 +330,11 @@
     // 更新订单数据
     order[field] = newValue;
     
+    // 清理编辑状态
+    cell.classList.remove('editing-cell');
+    cell.removeAttribute('data-original-content');
+    currentEditingCell = null;
+    
     // 如果NF字段有数据，自动将Status改为Concluído
     if (field === 'nf' && newValue && newValue.trim() !== '') {
         order.status = 'Concluído';
@@ -341,10 +346,10 @@
     // 保存到本地存储
     saveToLocalStorage();
     
-    // 重新应用过滤器和更新显示
-    applyFilters();
-    
-    currentEditingCell = null;
+    // 重新应用过滤器和更新显示（延迟执行，避免干扰当前编辑）
+    setTimeout(() => {
+      applyFilters();
+    }, 100);
   }
   
   function cancelCellEdit(cell) {
@@ -360,8 +365,24 @@
   
   // 点击其他地方时保存编辑
   document.addEventListener('click', (e) => {
-    if (currentEditingCell && !currentEditingCell.contains(e.target) && !e.target.classList.contains('cell-input')) {
-      saveCellEdit(currentEditingCell);
+    if (currentEditingCell && 
+        currentEditingCell.classList.contains('editing-cell') &&
+        !currentEditingCell.contains(e.target) && 
+        !e.target.classList.contains('cell-input') &&
+        !e.target.closest('.status-option') &&
+        !e.target.closest('button') &&
+        !e.target.closest('input[type="checkbox"]') &&
+        !e.target.closest('.modal') &&
+        !e.target.closest('.dropdown')) {
+      try {
+        saveCellEdit(currentEditingCell);
+      } catch (error) {
+        console.error('Error saving cell edit:', error);
+        // 如果保存失败，至少清理编辑状态
+        if (currentEditingCell) {
+          cancelCellEdit(currentEditingCell);
+        }
+      }
     }
   });
   </script>
@@ -1887,7 +1908,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 editable-cell" data-field="nf" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.nf)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="pedido" data-order-id="${order.id}" ondblclick="editCell(this)">${formatPedido(order.pedido)}</td>
                     <td class="px-3 py-2 editable-cell" data-field="company" data-order-id="${order.id}" ondblclick="editCell(this)">
-                        <div class="text-sm font-medium text-gray-500">${formatCompanyName(order.company)}</div>
+                        <div class="text-sm font-medium text-gray-500">${formatCompanyNameSimple(order.company)}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="issueDate" data-order-id="${order.id}" ondblclick="editCell(this)">${formatDate(order.issueDate)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)">${formatCurrency(order.finalValue)}</td>
@@ -2006,6 +2027,18 @@
     
     // 格式化公司名称
     function formatCompanyName(company) {
+        if (!company || company === undefined) {
+            return '';
+        }
+        // 检查是否包含 " - " 分隔符
+        if (company.includes(' - ')) {
+            return company.split(' - ')[1] || '';
+        }
+        return company;
+    }
+    
+    // 格式化公司名称（简单版本，只显示横杠后面的内容）
+    function formatCompanyNameSimple(company) {
         if (!company || company === undefined) {
             return '';
         }
@@ -2959,8 +2992,6 @@
                 <th>Representante</th>
                 <th>Status</th>
                 <th>CX</th>
-                <th>Operador</th>
-                <th>Modalidade</th>
               </tr>
             </thead>
             <tbody>
@@ -2987,21 +3018,40 @@
           currency: 'BRL'
         }).format(order.finalValue || 0);
         
+        // 格式化日期为DD/MM/YYYY
+        const formatDateForPrint = (dateString) => {
+          if (!dateString || dateString === undefined) {
+            return '';
+          }
+          
+          let date;
+          // 如果是YYYY-MM-DD格式，直接解析避免时区问题
+          if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const [year, month, day] = dateString.split('-');
+            date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          } else {
+            date = new Date(dateString);
+          }
+          
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        };
+        
         // 添加行数据
         printContent += `
           <tr>
             <td>${index + 1}</td>
             <td class="nf-column">${formatValue(order.nf)}</td>
             <td>${formatPedido(order.pedido)}</td>
-            <td>${formatValue(order.company)}</td>
-            <td>${formatValue(order.issueDate)}</td>
+            <td>${formatCompanyNameSimple(order.company)}</td>
+            <td>${formatDateForPrint(order.issueDate)}</td>
             <td>${formattedValue}</td>
             <td>${formatValue(order.orderTypeDescription)}</td>
             <td>${formatValue(order.representative)}</td>
             <td class="${statusClass}">${formatValue(order.status)}</td>
             <td>${formatValue(order.cx)}</td>
-            <td>${formatValue(order.operator)}</td>
-            <td>${formatValue(order.deliveryMode)}</td>
           </tr>
         `;
       });
@@ -3042,11 +3092,36 @@
         }
         return stringValue;
       };
+      
+      printWindow.formatCompanyNameSimple = function(company) {
+         if (!company || company === undefined) {
+           return '';
+         }
+         // 检查是否包含 " - " 分隔符
+         if (company.includes(' - ')) {
+           return company.split(' - ')[1] || '';
+         }
+         return company;
+       };
     }
     
     // 辅助函数：格式化值（处理undefined或null）
     function formatValue(value) {
       return value !== undefined && value !== null ? value : '';
+    }
+    
+    // 格式化Pedido号（移除前导零）
+    function formatPedido(value) {
+      if (value === undefined || value === null) {
+        return '';
+      }
+      // 将值转换为字符串并移除前导零
+      const stringValue = String(value);
+      // 使用parseInt然后转回字符串来移除前导零，但保持原始格式如果不是纯数字
+      if (/^\d+$/.test(stringValue)) {
+        return String(parseInt(stringValue, 10));
+      }
+      return stringValue;
     }
     
     // 切换状态下拉菜单显示/隐藏
