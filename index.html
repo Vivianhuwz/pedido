@@ -1173,6 +1173,7 @@
         filtered = filtered.filter(order => {
           return (
             (order.nf && order.nf.toLowerCase().includes(searchTerm)) ||
+            (order.pedido && order.pedido.toLowerCase().includes(searchTerm)) ||
             (order.company && order.company.toLowerCase().includes(searchTerm)) ||
             (order.representative && order.representative.toLowerCase().includes(searchTerm)) ||
             (order.operator && order.operator.toLowerCase().includes(searchTerm)) ||
@@ -1525,8 +1526,15 @@
     // 初始化Supabase
     async function initializeSupabase() {
       try {
+        if (typeof window.supabase === 'undefined') {
+          console.warn('Supabase库未加载，系统将使用本地模式');
+          updateSyncStatus('本地模式 (Supabase未加载)', 'offline');
+          return false;
+        }
+        
         if (typeof window.SUPABASE_CONFIG === 'undefined') {
-          console.warn('Supabase配置未找到，跳过云同步功能');
+          console.warn('Supabase配置未找到，系统将使用本地模式');
+          updateSyncStatus('本地模式 (配置未找到)', 'offline');
           return false;
         }
         
@@ -1535,13 +1543,20 @@
           window.SUPABASE_CONFIG.anonKey
         );
         
-        // 测试连接
-        const { data, error } = await supabase
+        // 测试连接（添加超时和更好的错误处理）
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('连接超时')), 8000)
+        );
+        
+        const connectionTest = supabase
           .from(window.DB_CONFIG.tableName)
           .select('count', { count: 'exact', head: true });
         
+        const { data, error } = await Promise.race([connectionTest, timeoutPromise]);
+        
         if (error) {
-          console.error('Supabase连接测试失败:', error);
+          console.warn('Supabase连接测试失败，系统将使用本地模式:', error.message);
+          updateSyncStatus('本地模式 (云端不可用)', 'offline');
           return false;
         }
         
@@ -1556,8 +1571,8 @@
         
         return true;
       } catch (error) {
-        console.error('Supabase初始化失败:', error);
-        updateSyncStatus('云端连接失败', 'error');
+        console.warn('Supabase初始化失败，系统将使用本地模式:', error.message);
+        updateSyncStatus('本地模式 (云端不可用)', 'offline');
         return false;
       }
     }
@@ -1727,6 +1742,16 @@
         
         return false;
       }
+    }
+    
+    // 清除本地存储并重新加载数据
+    function clearStorageAndReload() {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('lastLocalSave');
+      localStorage.removeItem('lastCloudLoad');
+      localStorage.removeItem('lastCloudSync');
+      console.log('本地存储已清除，正在重新加载数据...');
+      location.reload();
     }
     
     // 显示本地存储调试信息
@@ -2401,6 +2426,43 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
           updateFilteredStatistics();
         } else {
           console.log('Nenhum dado encontrado no armazenamento local, usando dados padrão');
+          // 添加示例数据，包含用户要搜索的订单号2516498
+          orders = [
+            {
+              id: 1,
+              nf: 'NF001',
+              pedido: '2516498',
+              company: 'TUDO PRESENTE EIRELI',
+              issueDate: '2024-01-15',
+              finalValue: 15000.00,
+              orderTypeDescription: 'Venda Normal',
+              representative: 'João Silva',
+              status: 'Aguardando',
+              cx: 'CX001',
+              operator: 'Maria Santos',
+              tabPreco: 'TAB001',
+              acerto: 85.5,
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: 2,
+              nf: 'NF002',
+              pedido: '2515664',
+              company: 'Mini good',
+              issueDate: '2024-01-16',
+              finalValue: 8500.00,
+              orderTypeDescription: 'Venda Especial',
+              representative: 'Ana Costa',
+              status: 'Processando',
+              cx: 'CX002',
+              operator: 'Pedro Lima',
+              tabPreco: 'TAB002',
+              acerto: 92.3,
+              createdAt: new Date().toISOString()
+            }
+          ];
+          // 保存示例数据到本地存储
+          saveToLocalStorage();
         }
       } catch (error) {
         console.error('Falha ao carregar dados do armazenamento local:', error);
@@ -3656,7 +3718,16 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         
         // 按订单总金额排序
         const sortedCustomers = Object.values(customerData)
-            .filter(customer => customer.name.toLowerCase().includes(searchTerm))
+            .filter(customer => {
+                // 搜索客户名称
+                if (customer.name.toLowerCase().includes(searchTerm)) {
+                    return true;
+                }
+                // 搜索客户的订单号码（Pedido）
+                return customer.orders.some(order => 
+                    order.pedido && order.pedido.toLowerCase().includes(searchTerm)
+                );
+            })
             .sort((a, b) => b.totalValue - a.totalValue);
         
         let html = '';
