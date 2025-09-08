@@ -1829,15 +1829,36 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
       alert(message);
     }
     
-    // 合并订单数据（云端优先）
+    // 合并订单数据（本地修改优先）
     function mergeOrderData(localOrders, cloudOrders) {
-      const merged = [...cloudOrders];
+      const merged = [];
+      const processedIds = new Set();
       
-      // 添加本地独有的数据
+      // 首先处理本地数据（保留本地修改）
       localOrders.forEach(localOrder => {
-        const existsInCloud = cloudOrders.find(cloudOrder => cloudOrder.id === localOrder.id);
-        if (!existsInCloud) {
+        const cloudOrder = cloudOrders.find(cloudOrder => cloudOrder.id === localOrder.id);
+        if (cloudOrder) {
+          // 如果云端也有这条数据，比较更新时间，优先使用较新的数据
+          const localTime = new Date(localOrder.updatedAt || localOrder.createdAt || 0);
+          const cloudTime = new Date(cloudOrder.updatedAt || cloudOrder.createdAt || 0);
+          
+          // 如果本地数据更新时间较新，或者时间相同但本地有未同步的修改，使用本地数据
+          if (localTime >= cloudTime) {
+            merged.push(localOrder);
+          } else {
+            merged.push(cloudOrder);
+          }
+        } else {
+          // 本地独有的数据
           merged.push(localOrder);
+        }
+        processedIds.add(localOrder.id);
+      });
+      
+      // 添加云端独有的数据
+      cloudOrders.forEach(cloudOrder => {
+        if (!processedIds.has(cloudOrder.id)) {
+          merged.push(cloudOrder);
         }
       });
       
@@ -3558,8 +3579,9 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         const orderIndex = orders.findIndex(order => order.id === orderId);
         if (orderIndex === -1) return;
         
-        // 更新状态
+        // 更新状态和时间戳
         orders[orderIndex].status = newStatus;
+        orders[orderIndex].updatedAt = new Date().toISOString();
         
         // 保存到本地存储
         saveToLocalStorage();
