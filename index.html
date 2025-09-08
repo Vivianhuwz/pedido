@@ -2645,11 +2645,15 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         // 初始化Supabase
         await initializeSupabase();
         
-        // 先从云端加载数据，如果失败则从本地加载
-        const cloudLoadSuccess = await loadFromCloud();
-        if (!cloudLoadSuccess) {
-            // Carregar dados do armazenamento local
-            loadFromLocalStorage();
+        // 优先从本地加载数据，保持用户的修改
+        loadFromLocalStorage();
+        
+        // 然后尝试与云端同步（不覆盖本地数据）
+        if (isSupabaseInitialized) {
+            // 延迟同步，确保本地数据优先
+            setTimeout(async () => {
+                await syncToCloud();
+            }, 1000);
         }
         
         // 初始化过滤器
