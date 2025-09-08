@@ -16,6 +16,7 @@ window.DB_CONFIG = {
     issue_date: 'issue_date',
     final_value: 'final_value',
     tab_preco: 'tab_preco',
+    acerto: 'acerto',
     order_type_description: 'order_type_description',
     representative: 'representative',
     status: 'status',

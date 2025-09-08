@@ -838,6 +838,9 @@
               <button onclick="printOrderList()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
                 <i class="fa fa-print mr-1 sm:mr-2"></i><span class="hidden sm:inline">Imprimir</span><span class="sm:hidden">Imprimir</span>
               </button>
+              <button onclick="exportToExcel()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors text-sm">
+                <i class="fa fa-download mr-1 sm:mr-2"></i><span class="hidden sm:inline">Excel</span><span class="sm:hidden">Excel</span>
+              </button>
               <button onclick="toggleColumnVisibilityModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-50 transition-colors text-sm">
                 <i class="fa fa-eye mr-1 sm:mr-2"></i><span class="hidden sm:inline">Colunas</span><span class="sm:hidden">Colunas</span>
               </button>
@@ -929,6 +932,7 @@
                   </div>
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="tabPreco">Tab. Preço</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="acerto">% Acerto</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="cx">CX</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="operator">Operador</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="actions">Ações</th>
@@ -948,7 +952,7 @@
   <script>
     // Constantes para armazenamento e API
     const STORAGE_KEY = 'order_management_system_data';
-    const API_BASE_URL = 'https://api.example.com'; // Substitua pela URL real da sua API
+    // API_BASE_URL removido - usando Supabase para sincronização
     
     // 选中的订单ID数组
     let selectedOrderIds = [];
@@ -1612,6 +1616,8 @@
             status: order.status || 'Aguardando',
             cx: order.cx || null,
             operator: order.operator || null,
+            tab_preco: order.tabPreco || null,
+            acerto: parseFloat(order.acerto) || 0,
             updated_at: new Date().toISOString()
           }));
           
@@ -1636,7 +1642,15 @@
         
       } catch (error) {
         console.error('同步到云端失败:', error);
-        updateSyncStatus('同步失败', 'error');
+        
+        // 检查是否是网络连接问题
+        if (error.message && error.message.includes('Failed to fetch')) {
+          updateSyncStatus('网络连接失败，使用本地存储', 'offline');
+          console.log('网络不可用，数据已保存到本地存储');
+        } else {
+          updateSyncStatus('同步失败', 'error');
+        }
+        
         return false;
       }
     }
@@ -1674,6 +1688,8 @@
             status: item.status,
             cx: item.cx,
             operator: item.operator,
+            tabPreco: item.tab_preco || '',
+            acerto: parseFloat(item.acerto) || 0,
             createdAt: item.created_at,
             updatedAt: item.updated_at
           }));
@@ -1700,9 +1716,92 @@
         
       } catch (error) {
         console.error('从云端加载数据失败:', error);
-        updateSyncStatus('加载失败', 'error');
+        
+        // 检查是否是网络连接问题
+        if (error.message && error.message.includes('Failed to fetch')) {
+          updateSyncStatus('网络连接失败，使用本地数据', 'offline');
+          console.log('网络不可用，将使用本地存储的数据');
+        } else {
+          updateSyncStatus('云端加载失败', 'error');
+        }
+        
         return false;
       }
+    }
+    
+    // 显示本地存储调试信息
+    function showStorageDebug() {
+      const storageData = localStorage.getItem(STORAGE_KEY);
+      const lastLocalSave = localStorage.getItem('lastLocalSave');
+      const lastCloudLoad = localStorage.getItem('lastCloudLoad');
+      const lastCloudSync = localStorage.getItem('lastCloudSync');
+      
+      let parsedData = null;
+      let dataCount = 0;
+      let parseError = null;
+      
+      try {
+        if (storageData) {
+          parsedData = JSON.parse(storageData);
+          dataCount = Array.isArray(parsedData) ? parsedData.length : 0;
+        }
+      } catch (error) {
+        parseError = error.message;
+      }
+      
+      const debugInfo = `
+📊 本地存储调试信息
+
+🔍 存储状态:
+• 存储键: ${STORAGE_KEY}
+• 数据存在: ${storageData ? '是' : '否'}
+• 数据大小: ${storageData ? (storageData.length / 1024).toFixed(2) + ' KB' : '0 KB'}
+• 记录数量: ${dataCount}
+• 内存中订单数: ${orders.length}
+• 过滤后订单数: ${filteredOrders.length}
+
+⏰ 时间戳:
+• 最后本地保存: ${lastLocalSave || '未记录'}
+• 最后云端加载: ${lastCloudLoad || '未记录'}
+• 最后云端同步: ${lastCloudSync || '未记录'}
+
+${parseError ? '❌ 数据解析错误: ' + parseError : '✅ 数据格式正常'}
+
+🔧 数据一致性检查:
+• 存储数据 = 内存数据: ${dataCount === orders.length ? '✅ 一致' : '❌ 不一致'}
+
+${storageData && dataCount > 0 ? '📝 存储数据预览 (前3条):' : ''}
+${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, index) => 
+  `${index + 1}. ID: ${order.id}, Pedido: ${order.pedido}, Company: ${order.company}`
+).join('\n') : ''}
+      `;
+      
+      alert(debugInfo);
+    }
+    
+    // 显示同步诊断信息
+    function showSyncDiagnostic() {
+      const diagnosticInfo = {
+        'Supabase初始化状态': isSupabaseInitialized ? '✅ 已初始化' : '❌ 未初始化',
+        '网络连接状态': navigator.onLine ? '✅ 在线' : '❌ 离线',
+        '配置文件加载': typeof window.SUPABASE_CONFIG !== 'undefined' ? '✅ 已加载' : '❌ 未加载',
+        '自动同步状态': window.SYNC_CONFIG?.autoSync ? '✅ 已启用' : '❌ 已禁用',
+        '本地数据条数': orders.length + ' 条',
+        '上次云端同步': localStorage.getItem('lastCloudSync') || '从未同步',
+        '上次本地保存': localStorage.getItem('lastLocalSave') || '从未保存'
+      };
+      
+      let message = '🔍 同步状态诊断:\n\n';
+      for (const [key, value] of Object.entries(diagnosticInfo)) {
+        message += `${key}: ${value}\n`;
+      }
+      
+      message += '\n💡 如果同步失败，请检查:\n';
+      message += '1. 网络连接是否正常\n';
+      message += '2. 是否能访问外网\n';
+      message += '3. 浏览器是否阻止了跨域请求';
+      
+      alert(message);
     }
     
     // 合并订单数据（云端优先）
@@ -1724,8 +1823,13 @@
     function startAutoSync() {
       if (window.SYNC_CONFIG.autoSync && window.SYNC_CONFIG.syncInterval > 0) {
         setInterval(async () => {
-          if (isSupabaseInitialized) {
-            await syncToCloud();
+          if (isSupabaseInitialized && navigator.onLine) {
+            const success = await syncToCloud();
+            if (!success) {
+              console.log('自动同步失败，将在下次间隔重试');
+            }
+          } else if (!navigator.onLine) {
+            updateSyncStatus('离线模式', 'offline');
           }
         }, window.SYNC_CONFIG.syncInterval);
         
@@ -1932,6 +2036,7 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="tabPreco" data-column="tabPreco" data-order-id="${order.id}" ondblclick="editCell(this)">${order.tabPreco ? (order.tabPreco.includes('-') ? order.tabPreco.split('-').slice(1).join('-') : order.tabPreco) : ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="acerto" data-column="acerto" data-order-id="${order.id}" ondblclick="editCell(this)">${formatAcerto(order.acerto)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-column="cx" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.cx)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-column="operator" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.operator)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" data-column="actions">
@@ -2061,6 +2166,18 @@
     function formatValue(value) {
         if (value === undefined || value === null) {
             return '';
+        }
+        return value;
+    }
+    
+    // 格式化% Acerto字段 - 当数值为0时不显示，四舍五入到整数
+    function formatAcerto(value) {
+        if (value === undefined || value === null || value === 0 || value === '0') {
+            return '';
+        }
+        // 如果是数字，四舍五入到整数并添加%符号
+        if (!isNaN(value) && value !== '') {
+            return Math.round(parseFloat(value)) + '%';
         }
         return value;
     }
@@ -2279,6 +2396,9 @@
         if (data) {
           orders = JSON.parse(data);
           console.log('Dados carregados do armazenamento local com sucesso');
+          // 更新页面显示
+          applyFilters();
+          updateFilteredStatistics();
         } else {
           console.log('Nenhum dado encontrado no armazenamento local, usando dados padrão');
         }
@@ -2291,6 +2411,7 @@
     async function saveToLocalStorage() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+        localStorage.setItem('lastLocalSave', new Date().toISOString());
         console.log('Dados salvos no armazenamento local');
         
         // Tentar sincronizar com a nuvem se o Supabase estiver inicializado
@@ -2305,49 +2426,7 @@
       }
     }
 
-    // Sincronizar dados com o servidor
-    async function syncWithServer() {
-      updateSyncStatus('Sincronizando...', 'syncing');
-      
-      try {
-        // Enviar dados locais para o servidor
-        const response = await fetch(`${API_BASE_URL}/orders/sync`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orders: orders,
-            lastSync: localStorage.getItem('lastSync')
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          
-          // Atualizar dados locais
-          if (result.orders) {
-            orders = result.orders;
-            saveToLocalStorage();
-            applyFilters();
-            updateFilteredStatistics();
-          }
-          
-          localStorage.setItem('lastSync', new Date().toISOString());
-          updateSyncStatus('Sincronizado', 'success');
-        } else {
-          throw new Error('Resposta do servidor com erro');
-        }
-      } catch (error) {
-        console.error('Falha na sincronização:', error);
-        updateSyncStatus('Falha na sincronização', 'error');
-        
-        // Se for um erro de rede, mostrar modo offline
-        if (error.name === 'TypeError') {
-          updateSyncStatus('Modo offline', 'offline');
-        }
-      }
-    }
+    // Função syncWithServer removida - usando syncToCloud() com Supabase
 
     // Atualizar indicador de status de sincronização
     function updateSyncStatus(message, type) {
@@ -2392,8 +2471,28 @@
         const syncButton = document.createElement('button');
         syncButton.className = 'p-2 text-gray-500 hover:text-primary transition-colors rounded-lg hover:bg-gray-100';
         syncButton.innerHTML = '<i class="fa fa-refresh"></i>';
-        syncButton.title = 'Sincronizar dados';
-        syncButton.onclick = syncWithServer;
+        syncButton.title = '手动同步到云端';
+        
+        // 添加诊断按钮
+        const diagnosticButton = document.createElement('button');
+        diagnosticButton.className = 'p-2 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-100';
+        diagnosticButton.innerHTML = '';
+        diagnosticButton.title = '同步状态诊断';
+        diagnosticButton.onclick = showSyncDiagnostic;
+        
+        // 添加本地存储调试按钮
+        const debugButton = document.createElement('button');
+        debugButton.className = 'p-2 text-gray-500 hover:text-orange-600 transition-colors rounded-lg hover:bg-gray-100';
+        debugButton.innerHTML = '';
+        debugButton.title = '本地存储调试';
+        debugButton.onclick = showStorageDebug;
+        syncButton.onclick = async () => {
+          if (isSupabaseInitialized) {
+            await syncToCloud();
+          } else {
+            updateSyncStatus('请先连接云端', 'error');
+          }
+        };
         
         const syncStatusElement = document.createElement('div');
         syncStatusElement.id = 'syncStatus';
@@ -2404,6 +2503,8 @@
         `;
         
         syncContainer.appendChild(syncButton);
+        syncContainer.appendChild(diagnosticButton);
+        syncContainer.appendChild(debugButton);
         syncContainer.appendChild(syncStatusElement);
         headerRight.appendChild(syncContainer);
       }
@@ -2435,19 +2536,22 @@
         
         // Configurar sincronização automática (a cada 5 minutos)
         setInterval(() => {
-          if (navigator.onLine) {
-            syncWithServer();
+          if (navigator.onLine && isSupabaseInitialized) {
+            syncToCloud();
           }
         }, 5 * 60 * 1000);
         
         // Adicionar evento para sincronização quando voltar online
         window.addEventListener('online', () => {
-          updateSyncStatus('Reconectado', 'success');
-          syncWithServer();
+          updateSyncStatus('网络已恢复', 'success');
+          // 尝试同步到云端
+          if (isSupabaseInitialized) {
+            syncToCloud();
+          }
         });
         
         window.addEventListener('offline', () => {
-          updateSyncStatus('Offline', 'offline');
+          updateSyncStatus('网络已断开', 'offline');
         });
         
         // 添加编辑表单提交事件监听
@@ -2517,15 +2621,40 @@
     tabPreco: true,
     cx: true,
     operator: true,
+    acerto: true,
     representative: true,
     orderType: true,
     finalValue: true,
     status: true
   };
 
+  // 从localStorage加载列可见性设置
+  function loadColumnVisibility() {
+    const saved = localStorage.getItem('columnVisibility');
+    if (saved) {
+      try {
+        const savedVisibility = JSON.parse(saved);
+        Object.keys(columnVisibility).forEach(column => {
+          if (savedVisibility.hasOwnProperty(column)) {
+            columnVisibility[column] = savedVisibility[column];
+          }
+        });
+      } catch (e) {
+        console.error('Error loading column visibility:', e);
+      }
+    }
+  }
+
+  // 保存列可见性设置到localStorage
+  function saveColumnVisibility() {
+    localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility));
+  }
+
   // 打开列隐藏模态框
   function toggleColumnVisibilityModal() {
     document.getElementById('columnVisibilityModal').classList.remove('hidden');
+    // 确保加载最新的列可见性设置
+    loadColumnVisibility();
     // 更新开关状态
     Object.keys(columnVisibility).forEach(column => {
       const toggle = document.getElementById(`toggle-${column}`);
@@ -2543,6 +2672,7 @@
   // 切换列显示/隐藏
   function toggleColumn(columnName) {
     columnVisibility[columnName] = !columnVisibility[columnName];
+    saveColumnVisibility();
     updateColumnVisibility();
   }
 
@@ -2591,12 +2721,21 @@
         toggle.checked = true;
       }
     });
+    saveColumnVisibility();
     updateColumnVisibility();
   }
 
   // 页面加载时初始化列显示状态
   document.addEventListener('DOMContentLoaded', function() {
+    loadColumnVisibility();
     updateColumnVisibility();
+    // 更新开关状态
+    Object.keys(columnVisibility).forEach(column => {
+      const toggle = document.getElementById(`toggle-${column}`);
+      if (toggle) {
+        toggle.checked = columnVisibility[column];
+      }
+    });
   });
 
   </script>
@@ -2994,6 +3133,19 @@
                         if (item['CX']) item.cx = item['CX'];
                         if (item['Operador']) item.operator = item['Operador'];
                         
+                        // 处理% Acerto字段的多种表头格式
+                        const acertoKeys = Object.keys(item).filter(key => {
+                            const normalizedKey = key.toLowerCase().replace(/[\s%\.]/g, '');
+                            return normalizedKey === 'acerto' || normalizedKey === 'percentacerto';
+                        });
+                        if (acertoKeys.length > 0) {
+                            const acertoValue = item[acertoKeys[0]];
+                            item.acerto = parseFloat(acertoValue) || 0;
+                        } else if (item['% Acerto'] || item['Acerto'] || item['%Acerto']) {
+                            const acertoValue = item['% Acerto'] || item['Acerto'] || item['%Acerto'];
+                            item.acerto = parseFloat(acertoValue) || 0;
+                        }
+                        
                         // 设置默认状态
                         if (!item.status) {
                             item.status = 'Aguardando';
@@ -3111,6 +3263,7 @@
                 <th>Representante</th>
                 <th>Status</th>
                 <th>Tab. Preço</th>
+                <th>% Acerto</th>
                 <th>CX</th>
               </tr>
             </thead>
@@ -3172,6 +3325,7 @@
             <td>${formatValue(order.representative)}</td>
             <td class="${statusClass}">${formatValue(order.status)}</td>
             <td>${order.tabPreco ? (order.tabPreco.includes('-') ? order.tabPreco.split('-').slice(1).join('-') : order.tabPreco) : ''}</td>
+            <td>${formatAcerto(order.acerto)}</td>
             <td>${formatValue(order.cx)}</td>
           </tr>
         `;
@@ -3229,6 +3383,70 @@
     // 辅助函数：格式化值（处理undefined或null）
     function formatValue(value) {
       return value !== undefined && value !== null ? value : '';
+    }
+    
+    // 导出到Excel函数
+    function exportToExcel() {
+      // 获取当前过滤后的订单
+      const ordersToExport = filteredOrders.length > 0 ? filteredOrders : orders;
+      
+      if (ordersToExport.length === 0) {
+        showNotification('Nenhum dado para exportar', 'warning');
+        return;
+      }
+      
+      // 准备导出数据
+      const exportData = ordersToExport.map((order, index) => {
+        return {
+          'Nº': index + 1,
+          'NF': order.nf || '',
+          'Pedido': order.pedido || '',
+          'Cliente': order.company || '',
+          'DATA': order.issueDate || '',
+          'Valor Final': order.finalValue || 0,
+          'TIPO': order.orderTypeDescription || '',
+          'Representante': order.representative || '',
+          'Status': order.status || '',
+          'Tab. Preço': order.tabPreco || '',
+          '% Acerto': order.acerto ? Math.round(parseFloat(order.acerto)) : 0,
+          'CX': order.cx || ''
+        };
+      });
+      
+      // 创建工作簿
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      
+      // 设置列宽
+      const colWidths = [
+        { wch: 5 },   // Nº
+        { wch: 12 },  // NF
+        { wch: 15 },  // Pedido
+        { wch: 30 },  // Cliente
+        { wch: 12 },  // DATA
+        { wch: 15 },  // Valor Final
+        { wch: 20 },  // TIPO
+        { wch: 20 },  // Representante
+        { wch: 15 },  // Status
+        { wch: 20 },  // Tab. Preço
+        { wch: 12 },  // % Acerto
+        { wch: 10 }   // CX
+      ];
+      ws['!cols'] = colWidths;
+      
+      // 添加工作表到工作簿
+      XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');
+      
+      // 生成文件名（包含当前日期时间）
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
+      const filename = `Pedidos_${dateStr}_${timeStr}.xlsx`;
+      
+      // 下载文件
+      XLSX.writeFile(wb, filename);
+      
+      showNotification(`Excel exportado com sucesso: ${filename}`, 'success');
     }
     
     // 格式化Pedido号（移除前导零）
@@ -3392,6 +3610,7 @@
                     totalOrders: 0,
                     totalValue: 0,
                     tabPreco: order.tabPreco || '',
+                    acerto: order.acerto || 0,
                     orders: []
                 };
             }
@@ -3403,6 +3622,11 @@
             // 更新Tab. Preço信息（使用最新的订单信息）
             if (order.tabPreco) {
                 customerData[customerName].tabPreco = order.tabPreco;
+            }
+            
+            // 更新% Acerto信息（使用最新的订单信息）
+            if (order.acerto && order.acerto > 0) {
+                customerData[customerName].acerto = order.acerto;
             }
         });
         
@@ -3443,7 +3667,18 @@
             sortedCustomers.forEach(customer => {
                 const isSelected = selectedCustomer === customer.name;
                 const displayName = formatCustomerName(customer.name);
-                const tabPrecoDisplay = customer.tabPreco ? (customer.tabPreco.includes('-') ? customer.tabPreco.split('-').slice(1).join('-') : customer.tabPreco) : '';
+                // 处理Tab. Preço显示逻辑
+                let tabPrecoDisplay = '';
+                if (customer.tabPreco) {
+                    let baseTabPreco = customer.tabPreco.includes('-') ? customer.tabPreco.split('-').slice(1).join('-') : customer.tabPreco;
+                    
+                    // 如果Tab. Preço是IMPORTADORA且有% Acerto数值，则显示为'IMPORTADORA + 数值'
+                    if (baseTabPreco === 'IMPORTADORA' && customer.acerto && customer.acerto > 0) {
+                        tabPrecoDisplay = `IMPORTADORA + ${Math.round(customer.acerto)}`;
+                    } else {
+                        tabPrecoDisplay = baseTabPreco;
+                    }
+                }
                 html += `
                     <div class="customer-item p-2 rounded-lg border transition-all duration-200 cursor-pointer ${
                         isSelected ? 'bg-white border-blue-300 shadow-md' : 'bg-white border-gray-200 hover:border-blue-200 hover:shadow-sm'
@@ -3453,7 +3688,7 @@
                                 <h4 class="font-semibold text-gray-800 text-sm leading-tight" title="${customer.name}">
                                     ${displayName}
                                 </h4>
-                                ${tabPrecoDisplay ? `<div class="text-xs text-gray-600 mt-1">Tab. Preço: ${tabPrecoDisplay}</div>` : ''}
+                                ${tabPrecoDisplay ? `<div class="text-xs text-gray-600 mt-1">Tab. Preço: ${tabPrecoDisplay}${customer.acerto && customer.acerto !== 0 ? ` ${Math.round(customer.acerto)}%` : ''}</div>` : ''}
                             </div>
                             <div class="flex justify-center items-center space-x-3">
                                 <div class="bg-white">
@@ -3718,7 +3953,7 @@
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div class="p-6">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-800">控制列显示</h2>
+            <h2 class="text-xl font-bold text-gray-800">Controlar Exibição de Colunas</h2>
             <button onclick="closeColumnVisibilityModal()" class="text-gray-500 hover:text-gray-700">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -3782,14 +4017,22 @@
                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
+            
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">% Acerto</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-acerto" class="sr-only peer" checked onchange="toggleColumn('acerto')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
           </div>
           
           <div class="flex justify-end space-x-3 mt-6">
             <button type="button" onclick="resetColumnVisibility()" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
-              重置
+              Redefinir
             </button>
             <button type="button" onclick="closeColumnVisibilityModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-              确定
+              Confirmar
             </button>
           </div>
         </div>
