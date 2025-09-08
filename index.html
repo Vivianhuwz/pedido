@@ -1438,7 +1438,7 @@
     }
     
     // 应用批量更新或删除
-    function applyBatchOperations(e) {
+    async function applyBatchOperations(e) {
         e.preventDefault();
         
         const operationType = document.querySelector('input[name="operationType"]:checked').value;
@@ -1471,7 +1471,29 @@
             
             showNotification('Pedidos atualizados com sucesso!', 'success');
         } else {
-            // 批量删除 - 直接删除，不需要确认文本
+            // 批量删除 - 立即同步到云端
+            if (isSupabaseInitialized && selectedOrderIds.length > 0) {
+                try {
+                    const { error } = await supabase
+                        .from(window.DB_CONFIG.tableName)
+                        .delete()
+                        .in('id', selectedOrderIds);
+                    
+                    if (error) {
+                        console.error('批量删除云端记录失败:', error);
+                        showNotification('删除失败，请重试', 'error');
+                        return;
+                    }
+                    
+                    console.log('已从云端批量删除记录 IDs:', selectedOrderIds);
+                } catch (error) {
+                    console.error('批量删除操作出错:', error);
+                    showNotification('删除失败，请重试', 'error');
+                    return;
+                }
+            }
+            
+            // 从本地数组中删除
             orders = orders.filter(order => !selectedOrderIds.includes(order.id));
             showNotification(`${selectedOrderIds.length} pedidos excluídos com sucesso!`, 'success');
         }
@@ -2371,16 +2393,41 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
     }
     
     // 删除订单
-    function deleteOrder(id) {
+    async function deleteOrder(id) {
         if (confirm('Tem certeza que deseja excluir este pedido?')) {
+            // 从本地数组中删除
             orders = orders.filter(order => order.id !== id);
+            
+            // 立即同步到云端删除
+            if (isSupabaseInitialized) {
+                try {
+                    const { error } = await supabase
+                        .from(window.DB_CONFIG.tableName)
+                        .delete()
+                        .eq('id', id);
+                    
+                    if (error) {
+                        console.error('删除云端记录失败:', error);
+                        showNotification('删除失败，请重试', 'error');
+                        return;
+                    }
+                    
+                    console.log('已从云端删除记录 ID:', id);
+                } catch (error) {
+                    console.error('删除操作出错:', error);
+                    showNotification('删除失败，请重试', 'error');
+                    return;
+                }
+            }
+            
             saveToLocalStorage(); // Salvar automaticamente
             applyFilters();
+            showNotification('Pedido excluído com sucesso!', 'success');
         }
     }
     
     // 应用批量更新或删除
-    function applyBatchOperations(e) {
+    async function applyBatchOperations(e) {
         e.preventDefault();
         
         const operationType = document.querySelector('input[name="operationType"]:checked').value;
