@@ -800,6 +800,9 @@
               <button onclick="printOrderList()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
                 <i class="fa fa-print mr-1 sm:mr-2"></i><span class="hidden sm:inline">Imprimir</span><span class="sm:hidden">Imprimir</span>
               </button>
+              <button onclick="toggleColumnVisibilityModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors text-sm">
+                <i class="fa fa-eye mr-1 sm:mr-2"></i><span class="hidden sm:inline">Colunas</span><span class="sm:hidden">Colunas</span>
+              </button>
               <button onclick="showAddOrderModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm">
                 <i class="fa fa-plus mr-1 sm:mr-2"></i><span class="hidden sm:inline">Pedido</span><span class="sm:hidden">Novo</span>
               </button>
@@ -814,10 +817,10 @@
                 <th class="px-4 py-3 text-center">
                   <input type="checkbox" id="selectAllOrders" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" onchange="toggleAllOrders(this.checked)">
                 </th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase">Nº</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">NF</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Pedido</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase" data-column="numero">Nº</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="nf">NF</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="pedido">Pedido</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="cliente">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center cursor-pointer hover:bg-gray-100 transition-colors px-2 py-1 rounded" onclick="sortByColumn('client')" data-sort-column="client">
                       <span>Cliente</span>
@@ -836,7 +839,7 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="data">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center cursor-pointer hover:bg-gray-100 transition-colors px-2 py-1 rounded" onclick="sortByColumn('issueDate')" data-sort-column="issueDate">
                       <span>DATA</span>
@@ -855,10 +858,10 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Valor Final</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="valor">Valor Final</th>
 
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">TIPO</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="tipo">TIPO</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="representante">
                   <div class="flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" onclick="toggleColumnFilter('representative')">
                     <span>Representante</span>
                     <svg class="w-4 h-4 text-gray-400 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -873,7 +876,7 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="status">
                   <div class="flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" onclick="toggleColumnFilter('status')">
                     <span>Status</span>
                     <svg class="w-4 h-4 text-gray-400 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -888,9 +891,11 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">CX</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Operador</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Ações</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="tabpreco">Tab. Preço</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="acerto">% Acerto</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="cx">CX</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="operador">Operador</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="acoes">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100" id="orderTableBody">
@@ -1564,6 +1569,8 @@
             id: order.id,
             nf: order.nf || null,
             pedido: order.pedido || null,
+            tab_preco: order.tabPreco || null,
+            acerto: parseFloat(order.acerto) || null,
             company: order.company || '',
             issue_date: order.issueDate || null,
             final_value: parseFloat(order.finalValue) || 0,
@@ -1626,6 +1633,8 @@
             id: item.id,
             nf: item.nf,
             pedido: item.pedido,
+            tabPreco: item.tab_preco,
+            acerto: parseFloat(item.acerto) || null,
             company: item.company,
             issueDate: item.issue_date,
             finalValue: parseFloat(item.final_value) || 0,
@@ -1864,22 +1873,22 @@
             
             return `
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-4 py-4 text-center">
+                    <td class="px-4 py-4 text-center" data-column="checkbox">
                         <input type="checkbox" class="order-checkbox form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" 
                                data-order-id="${order.id}" onchange="updateBatchOperationsButton()">
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 text-center">${index + 1}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 editable-cell" data-field="nf" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.nf)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="pedido" data-order-id="${order.id}" ondblclick="editCell(this)">${formatPedido(order.pedido)}</td>
-                    <td class="px-3 py-2 editable-cell" data-field="company" data-order-id="${order.id}" ondblclick="editCell(this)">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 text-center" data-column="numero">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 editable-cell" data-field="nf" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="nf">${formatValue(order.nf)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="pedido" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="pedido">${formatPedido(order.pedido)}</td>
+                    <td class="px-3 py-2 editable-cell" data-field="company" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="cliente">
                         <div class="text-sm font-medium text-gray-500">${formatCompanyName(order.company)}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="issueDate" data-order-id="${order.id}" ondblclick="editCell(this)">${formatDate(order.issueDate)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)">${formatCurrency(order.finalValue)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="issueDate" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="data">${formatDate(order.issueDate)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="valor">${formatCurrency(order.finalValue)}</td>
 
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="orderTypeDescription" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.orderTypeDescription)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="representative" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.representative)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="orderTypeDescription" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="tipo">${formatValue(order.orderTypeDescription)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="representative" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="representante">${formatValue(order.representative)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap" data-column="status">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.class} cursor-pointer hover:opacity-80" onclick="toggleStatusDropdown(${order.id}, event)">
                             <i class="fa ${statusInfo.icon} mr-1"></i>
                             ${formatValue(order.status)}
@@ -1892,9 +1901,11 @@
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Cancelado')">Cancelado</div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.cx)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.operator)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="tabPreco" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="tabpreco">${formatTabPreco(order.tabPreco)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="acerto" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="acerto">${formatAcerto(order.acerto)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="cx">${formatValue(order.cx)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="operador">${formatValue(order.operator)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" data-column="acoes">
                         <div class="flex space-x-2">
                             <button onclick="editOrder(${order.id})" class="text-primary hover:text-primary/80 transition-colors">
                                 <i class="fa fa-edit"></i>
@@ -2020,6 +2031,36 @@
             return String(parseInt(stringValue, 10));
         }
         return stringValue;
+    }
+    
+    // 格式化Tab. Preço字段 - 显示横杠后面的内容
+    function formatTabPreco(value) {
+        if (value === undefined || value === null || value === '') {
+            return '';
+        }
+        const stringValue = String(value);
+        // 查找横杠的位置
+        const dashIndex = stringValue.indexOf('-');
+        if (dashIndex !== -1 && dashIndex < stringValue.length - 1) {
+            // 返回横杠后面的内容
+            return stringValue.substring(dashIndex + 1);
+        }
+        // 如果没有横杠，返回原值
+        return stringValue;
+    }
+    
+    // 格式化% Acerto字段 - 不显示0，显示负数，四舍五入不显示小数
+    function formatAcerto(value) {
+        if (value === undefined || value === null || value === '' || value === 0) {
+            return '';
+        }
+        const numValue = parseFloat(value);
+        if (isNaN(numValue) || numValue === 0) {
+            return '';
+        }
+        // 四舍五入到整数
+        const roundedValue = Math.round(numValue);
+        return roundedValue + '%';
     }
     
     // 显示添加订单模态框
@@ -2452,6 +2493,71 @@
       e.returnValue = '';
     }
   });
+
+  // 列可见性控制函数
+  function toggleColumnVisibilityModal() {
+    const modal = document.getElementById('columnVisibilityModal');
+    modal.classList.remove('hidden');
+  }
+
+  function closeColumnVisibilityModal() {
+    const modal = document.getElementById('columnVisibilityModal');
+    modal.classList.add('hidden');
+    applyColumnVisibility();
+  }
+
+  function selectAllColumns() {
+    const checkboxes = document.querySelectorAll('.column-toggle');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = true;
+    });
+  }
+
+  function deselectAllColumns() {
+    const checkboxes = document.querySelectorAll('.column-toggle');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = false;
+    });
+  }
+
+  function applyColumnVisibility() {
+    const checkboxes = document.querySelectorAll('.column-toggle');
+    
+    checkboxes.forEach(checkbox => {
+      const columnName = checkbox.dataset.column;
+      const isVisible = checkbox.checked;
+      
+      // 隐藏或显示表头
+      const headerCells = document.querySelectorAll(`th[data-column="${columnName}"]`);
+      headerCells.forEach(cell => {
+        cell.style.display = isVisible ? '' : 'none';
+      });
+      
+      // 隐藏或显示数据行中的对应列
+      const dataCells = document.querySelectorAll(`td[data-column="${columnName}"]`);
+      dataCells.forEach(cell => {
+        cell.style.display = isVisible ? '' : 'none';
+      });
+    });
+  }
+
+  // 检查列是否可见的辅助函数
+  function getVisibleColumn(columnName) {
+    const checkbox = document.querySelector(`input[data-column="${columnName}"]`);
+    return checkbox ? checkbox.checked : true; // 默认显示
+  }
+
+  // 页面加载时初始化列可见性
+  document.addEventListener('DOMContentLoaded', function() {
+    // 为复选框添加事件监听器
+    const checkboxes = document.querySelectorAll('.column-toggle');
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        // 实时应用列可见性变化
+        applyColumnVisibility();
+      });
+    });
+  });
   </script>
 
   <!-- 添加订单模态框 -->
@@ -2825,6 +2931,10 @@
                         if (item['Representante']) item.representative = item['Representante'];
                         if (item['CX']) item.cx = item['CX'];
                         if (item['Operador']) item.operator = item['Operador'];
+                        
+                        // 映射新添加的列
+                        if (item['Tab. Preço']) item.tabPreco = item['Tab. Preço'];
+                        if (item['% Acerto']) item.acerto = item['% Acerto'];
 
                         
                         // 设置默认状态
@@ -2950,17 +3060,19 @@
           <table>
             <thead>
               <tr>
-                <th>Nº</th>
-                <th>NF</th>
-                <th>Pedido</th>
-                <th>Cliente</th>
-                <th>DATA</th>
-                <th>Valor Final</th>
-                <th>TIPO</th>
-                <th>Representante</th>
-                <th>Status</th>
-                <th>CX</th>
-                <th>Operador</th>
+                ${getVisibleColumn('numero') ? '<th>Nº</th>' : ''}
+                ${getVisibleColumn('nf') ? '<th>NF</th>' : ''}
+                ${getVisibleColumn('pedido') ? '<th>Pedido</th>' : ''}
+                ${getVisibleColumn('cliente') ? '<th>Cliente</th>' : ''}
+                ${getVisibleColumn('data') ? '<th>DATA</th>' : ''}
+                ${getVisibleColumn('valor') ? '<th>Valor Final</th>' : ''}
+                ${getVisibleColumn('tipo') ? '<th>TIPO</th>' : ''}
+                ${getVisibleColumn('representante') ? '<th>Representante</th>' : ''}
+                ${getVisibleColumn('status') ? '<th>Status</th>' : ''}
+                ${getVisibleColumn('tabpreco') ? '<th>Tab. Preço</th>' : ''}
+                ${getVisibleColumn('acerto') ? '<th>% Acerto</th>' : ''}
+                ${getVisibleColumn('cx') ? '<th>CX</th>' : ''}
+                ${getVisibleColumn('operador') ? '<th>Operador</th>' : ''}
                 <th>Modalidade</th>
               </tr>
             </thead>
@@ -2991,17 +3103,19 @@
         // 添加行数据
         printContent += `
           <tr>
-            <td>${index + 1}</td>
-            <td class="nf-column">${formatValue(order.nf)}</td>
-            <td>${formatPedido(order.pedido)}</td>
-            <td>${formatValue(order.company)}</td>
-            <td>${formatValue(order.issueDate)}</td>
-            <td>${formattedValue}</td>
-            <td>${formatValue(order.orderTypeDescription)}</td>
-            <td>${formatValue(order.representative)}</td>
-            <td class="${statusClass}">${formatValue(order.status)}</td>
-            <td>${formatValue(order.cx)}</td>
-            <td>${formatValue(order.operator)}</td>
+            ${getVisibleColumn('numero') ? `<td>${index + 1}</td>` : ''}
+            ${getVisibleColumn('nf') ? `<td class="nf-column">${formatValue(order.nf)}</td>` : ''}
+            ${getVisibleColumn('pedido') ? `<td>${formatPedido(order.pedido)}</td>` : ''}
+            ${getVisibleColumn('cliente') ? `<td>${formatValue(order.company)}</td>` : ''}
+            ${getVisibleColumn('data') ? `<td>${formatValue(order.issueDate)}</td>` : ''}
+            ${getVisibleColumn('valor') ? `<td>${formattedValue}</td>` : ''}
+            ${getVisibleColumn('tipo') ? `<td>${formatValue(order.orderTypeDescription)}</td>` : ''}
+            ${getVisibleColumn('representante') ? `<td>${formatValue(order.representative)}</td>` : ''}
+            ${getVisibleColumn('status') ? `<td class="${statusClass}">${formatValue(order.status)}</td>` : ''}
+            ${getVisibleColumn('tabpreco') ? `<td>${formatTabPreco(order.tabPreco)}</td>` : ''}
+            ${getVisibleColumn('acerto') ? `<td>${formatAcerto(order.acerto)}</td>` : ''}
+            ${getVisibleColumn('cx') ? `<td>${formatValue(order.cx)}</td>` : ''}
+            ${getVisibleColumn('operador') ? `<td>${formatValue(order.operator)}</td>` : ''}
             <td>${formatValue(order.deliveryMode)}</td>
           </tr>
         `;
@@ -3042,6 +3156,30 @@
           return String(parseInt(stringValue, 10));
         }
         return stringValue;
+      };
+      
+      printWindow.formatTabPreco = function(value) {
+        if (value === undefined || value === null || value === '') {
+          return '';
+        }
+        const stringValue = String(value);
+        const dashIndex = stringValue.indexOf('-');
+        if (dashIndex !== -1 && dashIndex < stringValue.length - 1) {
+          return stringValue.substring(dashIndex + 1);
+        }
+        return stringValue;
+      };
+      
+      printWindow.formatAcerto = function(value) {
+        if (value === undefined || value === null || value === '' || value === 0) {
+          return '';
+        }
+        const numValue = parseFloat(value);
+        if (isNaN(numValue) || numValue === 0) {
+          return '';
+        }
+        const roundedValue = Math.round(numValue);
+        return roundedValue + '%';
       };
     }
     
@@ -3504,6 +3642,105 @@
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 列可见性控制模态框 -->
+  <div id="columnVisibilityModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Controle de Colunas</h2>
+            <button onclick="closeColumnVisibilityModal()" class="text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="space-y-3">
+            <p class="text-sm text-gray-600 mb-4">Selecione as colunas que deseja exibir na tabela:</p>
+            
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+              <label class="flex items-center">
+                <input type="checkbox" id="col-nf" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="nf" checked>
+                <span class="ml-2 text-sm">NF</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-pedido" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="pedido" checked>
+                <span class="ml-2 text-sm">Pedido</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-cliente" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="cliente" checked>
+                <span class="ml-2 text-sm">Cliente</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-data" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="data" checked>
+                <span class="ml-2 text-sm">DATA</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-valor" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="valor" checked>
+                <span class="ml-2 text-sm">Valor Final</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-tipo" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="tipo" checked>
+                <span class="ml-2 text-sm">TIPO</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-representante" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="representante" checked>
+                <span class="ml-2 text-sm">Representante</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-status" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="status" checked>
+                <span class="ml-2 text-sm">Status</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-tabpreco" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="tabpreco" checked>
+                <span class="ml-2 text-sm">Tab. Preço</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-acerto" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="acerto" checked>
+                <span class="ml-2 text-sm">% Acerto</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-cx" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="cx" checked>
+                <span class="ml-2 text-sm">CX</span>
+              </label>
+              
+              <label class="flex items-center">
+                <input type="checkbox" id="col-operador" class="column-toggle form-checkbox h-4 w-4 text-blue-600" data-column="operador" checked>
+                <span class="ml-2 text-sm">Operador</span>
+              </label>
+            </div>
+            
+            <div class="flex justify-between items-center pt-4 border-t">
+              <div class="flex space-x-2">
+                <button type="button" onclick="selectAllColumns()" class="px-3 py-1 text-xs bg-green-100 text-green-600 rounded hover:bg-green-200 transition-colors">
+                  Selecionar Todas
+                </button>
+                <button type="button" onclick="deselectAllColumns()" class="px-3 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors">
+                  Desmarcar Todas
+                </button>
+              </div>
+              
+              <button type="button" onclick="closeColumnVisibilityModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                Aplicar
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
