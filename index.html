@@ -442,8 +442,8 @@
     }
     
     .mobile-nav-item.active {
-      background: white !important;
-      color: #374151 !important;
+      background: #3b82f6 !important;
+      color: white !important;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
@@ -732,88 +732,88 @@
       <!-- 主要内容区域 -->
       <div id="mainContent" class="flex-1 transition-all duration-300">
       <!-- Painel de estatísticas -->
-      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8 max-w-7xl">
         <!-- Total de pedidos -->
-        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Total de Pedidos</p>
-              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="totalOrders">0</p>
-              <p class="text-xs text-green-500 mt-1 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Total de Pedidos</p>
+              <p class="text-base sm:text-xl font-bold text-gray-500" id="totalOrders">0</p>
+              <p class="text-xs text-green-500 mt-0.5 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="totalOrdersGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-file-text-o text-sm sm:text-xl text-blue-600"></i>
+            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-file-text-o text-xs sm:text-lg text-blue-600"></i>
             </div>
           </div>
         </div>
 
         <!-- Pedidos pendentes -->
-        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Pedidos Pendentes</p>
-              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="pendingOrders">0</p>
-              <p class="text-xs text-orange-500 mt-1 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Pedidos Pendentes</p>
+              <p class="text-base sm:text-xl font-bold text-gray-500" id="pendingOrders">0</p>
+              <p class="text-xs text-orange-500 mt-0.5 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="pendingOrdersGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-orange-100 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-clock-o text-sm sm:text-xl text-orange-600"></i>
+            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-clock-o text-xs sm:text-lg text-orange-600"></i>
             </div>
           </div>
         </div>
 
         <!-- Pedidos concluídos -->
-        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Pedidos Concluídos</p>
-              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="completedOrders">0</p>
-              <p class="text-xs text-green-500 mt-1 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Pedidos Concluídos</p>
+              <p class="text-base sm:text-xl font-bold text-gray-500" id="completedOrders">0</p>
+              <p class="text-xs text-green-500 mt-0.5 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="completedOrdersGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-check-circle text-sm sm:text-xl text-green-600"></i>
+            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-check-circle text-xs sm:text-lg text-green-600"></i>
             </div>
           </div>
         </div>
 
         <!-- Valor total dos pedidos -->
-        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Valor Total dos Pedidos</p>
-              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="totalRevenue">¥0</p>
-              <p class="text-xs text-green-500 mt-1 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Valor Total dos Pedidos</p>
+              <p class="text-base sm:text-xl font-bold text-gray-500" id="totalRevenue">¥0</p>
+              <p class="text-xs text-green-500 mt-0.5 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="revenueGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-money text-sm sm:text-xl text-blue-600"></i>
+            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-money text-xs sm:text-lg text-blue-600"></i>
             </div>
           </div>
         </div>
 
         <!-- Total de Clientes -->
-        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Total de Clientes</p>
-              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="totalClients">0</p>
-              <p class="text-xs text-purple-500 mt-1 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Total de Clientes</p>
+              <p class="text-base sm:text-xl font-bold text-gray-500" id="totalClients">0</p>
+              <p class="text-xs text-purple-500 mt-0.5 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="clientsGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-purple-100 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-users text-sm sm:text-xl text-purple-600"></i>
+            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-users text-xs sm:text-lg text-purple-600"></i>
             </div>
           </div>
         </div>
