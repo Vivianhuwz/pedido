@@ -1128,6 +1128,7 @@
         filtered = filtered.filter(order => {
           return (
             (order.nf && order.nf.toLowerCase().includes(searchTerm)) ||
+            (order.pedido && order.pedido.toString().toLowerCase().includes(searchTerm)) ||
             (order.company && order.company.toLowerCase().includes(searchTerm)) ||
             (order.representative && order.representative.toLowerCase().includes(searchTerm)) ||
             (order.operator && order.operator.toLowerCase().includes(searchTerm)) ||
@@ -2808,7 +2809,7 @@
                         // 处理订货号 (Pedido)
                         const rowValues = Object.values(item);
                         for (const value of rowValues) {
-                            if (typeof value === 'string' && /^[0-9]{12}$/.test(value)) {
+                            if (typeof value === 'string' && /^[0-9]{6,12}$/.test(value)) {
                                 item.pedido = value;
                                 break;
                             }
