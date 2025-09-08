@@ -1570,17 +1570,43 @@
         console.log('Supabase URL:', window.SUPABASE_CONFIG.url);
         console.log('表名:', window.DB_CONFIG.tableName);
         
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('连接超时 (8秒)')), 8000)
-        );
+        // 首先测试基本连接
+        try {
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('连接超时 (5秒)')), 5000)
+          );
+          
+          // 简单的健康检查
+          const healthCheck = fetch(`${window.SUPABASE_CONFIG.url}/rest/v1/`, {
+            method: 'GET',
+            headers: {
+              'apikey': window.SUPABASE_CONFIG.anonKey,
+              'Authorization': `Bearer ${window.SUPABASE_CONFIG.anonKey}`
+            }
+          });
+          
+          const response = await Promise.race([healthCheck, timeoutPromise]);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          console.log('Supabase基础连接成功，正在测试数据表...');
+          
+          // 测试数据表访问
+          const tableTest = supabase
+            .from(window.DB_CONFIG.tableName)
+            .select('count', { count: 'exact', head: true });
+          
+          const { data, error } = await tableTest;
+          
+          if (error) {
+            throw error;
+          }
+          
+        } catch (testError) {
+          const error = testError;
         
-        const connectionTest = supabase
-          .from(window.DB_CONFIG.tableName)
-          .select('count', { count: 'exact', head: true });
-        
-        const { data, error } = await Promise.race([connectionTest, timeoutPromise]);
-        
-        if (error) {
           console.error('Supabase连接详细错误:', {
             message: error.message,
             details: error.details,
@@ -1607,6 +1633,12 @@
           } else if (error.code === 'PGRST116') {
             errorMessage = '数据表配置错误';
             detailedMessage = '数据表权限配置错误，请检查RLS策略';
+          } else if (error.message.includes('HTTP 401')) {
+            errorMessage = 'API密钥无效';
+            detailedMessage = 'Supabase API密钥无效，请检查配置';
+          } else if (error.message.includes('HTTP 404')) {
+            errorMessage = 'Supabase项目不存在';
+            detailedMessage = 'Supabase项目URL无效或项目已删除';
           }
           
           console.warn('Supabase连接测试失败，系统将使用本地模式:', detailedMessage);
