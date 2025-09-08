@@ -711,7 +711,7 @@
       <!-- 主要内容区域 -->
       <div id="mainContent" class="flex-1 transition-all duration-300">
       <!-- Painel de estatísticas -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total de pedidos -->
         <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
           <div class="flex items-center justify-between">
@@ -776,6 +776,20 @@
             </div>
             <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ml-2">
               <i class="fa fa-money text-sm sm:text-xl text-blue-600"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clientes por Status -->
+        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
+          <div class="flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate" id="customerStatusLabel">Todos os Clientes</p>
+              <p class="text-lg sm:text-2xl font-bold" id="customerCount" style="color: #6b7280;">0</p>
+
+            </div>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ml-2" id="customerStatusIcon">
+              <i class="fa fa-users text-sm sm:text-xl text-purple-600"></i>
             </div>
           </div>
         </div>
@@ -1657,6 +1671,9 @@
           // 更新显示
           applyFilters();
           
+          // 更新客户统计
+          updateCustomerStatistics();
+          
           console.log('从云端加载数据成功:', cloudOrders.length, '条记录');
           updateSyncStatus('已从云端加载', 'success');
           localStorage.setItem('lastCloudLoad', new Date().toISOString());
@@ -1778,6 +1795,34 @@
         
         // 应用过滤器
         applyFilters();
+        
+        // 同步客户卡片状态
+        syncCustomerCardWithFilter(status);
+    }
+    
+    // 同步客户卡片与筛选状态
+    function syncCustomerCardWithFilter(status) {
+        // 状态映射：导航栏状态 -> 客户卡片状态
+        const statusMapping = {
+            'all': 'all',
+            'pending': 'Aguardando',
+            'processing': 'Processando', 
+            'completed': 'Concluído',
+            'cancelled': 'Cancelado'
+        };
+        
+        const mappedStatus = statusMapping[status] || status;
+        
+        // 找到对应的状态索引
+        const statusIndex = customerStatusCycle.findIndex(s => s.key === mappedStatus);
+        if (statusIndex !== -1) {
+            currentCustomerStatusIndex = statusIndex;
+            const currentStatus = customerStatusCycle[currentCustomerStatusIndex];
+            updateCustomerCardDisplay(currentStatus);
+            
+            // 更新客户统计
+            updateCustomerStatistics();
+        }
     }
     
     // 应用所有过滤器（状态 + 搜索 + 列筛选）
@@ -1931,6 +1976,76 @@
         document.getElementById('pendingOrders').textContent = pending;
         document.getElementById('completedOrders').textContent = completed;
         document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
+        
+        // 更新客户数量统计
+        updateCustomerStatistics();
+    }
+    
+    // 客户状态循环数组
+    const customerStatusCycle = [
+        { key: 'all', label: 'Todos os Clientes', color: '#6b7280', icon: 'fa-users', iconColor: 'text-purple-600' },
+        { key: 'Aguardando', label: 'Clientes Aguardando', color: '#ea580c', icon: 'fa-clock-o', iconColor: 'text-orange-600' },
+        { key: 'Processando', label: 'Clientes Processando', color: '#2563eb', icon: 'fa-cog', iconColor: 'text-blue-600' },
+        { key: 'Concluído', label: 'Clientes Concluídos', color: '#16a34a', icon: 'fa-check-circle', iconColor: 'text-green-600' },
+        { key: 'Cancelado', label: 'Clientes Cancelados', color: '#dc2626', icon: 'fa-times-circle', iconColor: 'text-red-600' }
+    ];
+    
+    let currentCustomerStatusIndex = 0;
+    
+    // 循环切换客户状态
+
+    // 更新客户卡片显示
+    function updateCustomerCardDisplay(statusConfig) {
+        const labelElement = document.getElementById('customerStatusLabel');
+        const countElement = document.getElementById('customerCount');
+        const iconElement = document.getElementById('customerStatusIcon');
+        
+        if (labelElement) labelElement.textContent = statusConfig.label;
+        if (countElement) countElement.style.color = statusConfig.color;
+        if (iconElement) {
+            iconElement.innerHTML = `<i class="fa ${statusConfig.icon} text-sm sm:text-xl ${statusConfig.iconColor}"></i>`;
+        }
+    }
+    
+    // 更新客户数量统计
+    function updateCustomerStatistics() {
+        // 获取唯一客户列表
+        const uniqueCustomers = new Set();
+        const customersByStatus = {
+            'all': new Set(),
+            'Aguardando': new Set(),
+            'Processando': new Set(),
+            'Concluído': new Set(),
+            'Cancelado': new Set()
+        };
+        
+        filteredOrders.forEach(order => {
+            if (order.company && order.company.trim()) {
+                uniqueCustomers.add(order.company);
+                customersByStatus['all'].add(order.company);
+                
+                // 根据状态分类客户
+                if (['Aguardando', 'Pendente'].includes(order.status)) {
+                    customersByStatus['Aguardando'].add(order.company);
+                } else if (order.status === 'Processando') {
+                    customersByStatus['Processando'].add(order.company);
+                } else if (['Concluído', 'Finalizado'].includes(order.status)) {
+                    customersByStatus['Concluído'].add(order.company);
+                } else if (order.status === 'Cancelado') {
+                    customersByStatus['Cancelado'].add(order.company);
+                }
+            }
+        });
+        
+        // 根据当前选中的状态更新显示
+        const currentStatus = customerStatusCycle[currentCustomerStatusIndex];
+        const currentCount = customersByStatus[currentStatus.key].size;
+        
+        // 更新客户数量
+        document.getElementById('customerCount').textContent = currentCount;
+        
+        // 更新卡片显示样式
+        updateCustomerCardDisplay(currentStatus);
     }
     
     // 格式化货币
@@ -2262,6 +2377,9 @@
         if (data) {
           orders = JSON.parse(data);
           console.log('Dados carregados do armazenamento local com sucesso');
+          
+          // 更新客户统计
+          updateCustomerStatistics();
         } else {
           console.log('Nenhum dado encontrado no armazenamento local, usando dados padrão');
         }
@@ -2406,6 +2524,9 @@
         
         // 初始化过滤器
         filterByStatus('all');
+        
+        // 更新客户统计
+        updateCustomerStatistics();
         
         // Adicionar elemento de status de sincronização
         addSyncStatusElement();
