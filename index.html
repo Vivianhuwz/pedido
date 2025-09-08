@@ -330,11 +330,6 @@
     // 更新订单数据
     order[field] = newValue;
     
-    // 清理编辑状态
-    cell.classList.remove('editing-cell');
-    cell.removeAttribute('data-original-content');
-    currentEditingCell = null;
-    
     // 如果NF字段有数据，自动将Status改为Concluído
     if (field === 'nf' && newValue && newValue.trim() !== '') {
         order.status = 'Concluído';
@@ -346,10 +341,10 @@
     // 保存到本地存储
     saveToLocalStorage();
     
-    // 重新应用过滤器和更新显示（延迟执行，避免干扰当前编辑）
-    setTimeout(() => {
-      applyFilters();
-    }, 100);
+    // 重新应用过滤器和更新显示
+    applyFilters();
+    
+    currentEditingCell = null;
   }
   
   function cancelCellEdit(cell) {
@@ -365,24 +360,8 @@
   
   // 点击其他地方时保存编辑
   document.addEventListener('click', (e) => {
-    if (currentEditingCell && 
-        currentEditingCell.classList.contains('editing-cell') &&
-        !currentEditingCell.contains(e.target) && 
-        !e.target.classList.contains('cell-input') &&
-        !e.target.closest('.status-option') &&
-        !e.target.closest('button') &&
-        !e.target.closest('input[type="checkbox"]') &&
-        !e.target.closest('.modal') &&
-        !e.target.closest('.dropdown')) {
-      try {
-        saveCellEdit(currentEditingCell);
-      } catch (error) {
-        console.error('Error saving cell edit:', error);
-        // 如果保存失败，至少清理编辑状态
-        if (currentEditingCell) {
-          cancelCellEdit(currentEditingCell);
-        }
-      }
+    if (currentEditingCell && !currentEditingCell.contains(e.target) && !e.target.classList.contains('cell-input')) {
+      saveCellEdit(currentEditingCell);
     }
   });
   </script>
@@ -442,10 +421,10 @@
     }
     
     .mobile-nav-item.active {
-      background: #3b82f6 !important;
-      color: white !important;
+      background: white !important;
+      color: #3b82f6 !important;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
     .mobile-nav-item:hover:not(.active) {
@@ -732,88 +711,71 @@
       <!-- 主要内容区域 -->
       <div id="mainContent" class="flex-1 transition-all duration-300">
       <!-- Painel de estatísticas -->
-      <div class="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8 max-w-7xl">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total de pedidos -->
-        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Total de Pedidos</p>
-              <p class="text-base sm:text-xl font-bold text-gray-500" id="totalOrders">0</p>
-              <p class="text-xs text-green-500 mt-0.5 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Total de Pedidos</p>
+              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="totalOrders">0</p>
+              <p class="text-xs text-green-500 mt-1 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="totalOrdersGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-file-text-o text-xs sm:text-lg text-blue-600"></i>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-file-text-o text-sm sm:text-xl text-blue-600"></i>
             </div>
           </div>
         </div>
 
         <!-- Pedidos pendentes -->
-        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Pedidos Pendentes</p>
-              <p class="text-base sm:text-xl font-bold text-gray-500" id="pendingOrders">0</p>
-              <p class="text-xs text-orange-500 mt-0.5 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Pedidos Pendentes</p>
+              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="pendingOrders">0</p>
+              <p class="text-xs text-orange-500 mt-1 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="pendingOrdersGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-clock-o text-xs sm:text-lg text-orange-600"></i>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-orange-100 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-clock-o text-sm sm:text-xl text-orange-600"></i>
             </div>
           </div>
         </div>
 
         <!-- Pedidos concluídos -->
-        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Pedidos Concluídos</p>
-              <p class="text-base sm:text-xl font-bold text-gray-500" id="completedOrders">0</p>
-              <p class="text-xs text-green-500 mt-0.5 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Pedidos Concluídos</p>
+              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="completedOrders">0</p>
+              <p class="text-xs text-green-500 mt-1 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="completedOrdersGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-check-circle text-xs sm:text-lg text-green-600"></i>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-check-circle text-sm sm:text-xl text-green-600"></i>
             </div>
           </div>
         </div>
 
         <!-- Valor total dos pedidos -->
-        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
+        <div class="bg-white rounded-xl shadow-sm p-3 sm:p-6 stat-card">
           <div class="flex items-center justify-between">
             <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Valor Total dos Pedidos</p>
-              <p class="text-base sm:text-xl font-bold text-gray-500" id="totalRevenue">¥0</p>
-              <p class="text-xs text-green-500 mt-0.5 hidden sm:block">
+              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-1 truncate">Valor Total dos Pedidos</p>
+              <p class="text-lg sm:text-2xl font-bold text-gray-500" id="totalRevenue">¥0</p>
+              <p class="text-xs text-green-500 mt-1 hidden sm:block">
                 <i class="fa fa-arrow-up"></i>
                 <span id="revenueGrowth">0%</span> em relação ao mês anterior
               </p>
             </div>
-            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-money text-xs sm:text-lg text-blue-600"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- Total de Clientes -->
-        <div class="bg-white rounded-xl shadow-sm p-2 sm:p-4 stat-card">
-          <div class="flex items-center justify-between">
-            <div class="flex-1 min-w-0">
-              <p class="text-xs sm:text-sm font-medium text-gray-400 mb-0.5 truncate">Total de Clientes</p>
-              <p class="text-base sm:text-xl font-bold text-gray-500" id="totalClients">0</p>
-              <p class="text-xs text-purple-500 mt-0.5 hidden sm:block">
-                <i class="fa fa-arrow-up"></i>
-                <span id="clientsGrowth">0%</span> em relação ao mês anterior
-              </p>
-            </div>
-            <div class="w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ml-2">
-              <i class="fa fa-users text-xs sm:text-lg text-purple-600"></i>
+            <div class="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center ml-2">
+              <i class="fa fa-money text-sm sm:text-xl text-blue-600"></i>
             </div>
           </div>
         </div>
@@ -837,12 +799,6 @@
               </button>
               <button onclick="printOrderList()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
                 <i class="fa fa-print mr-1 sm:mr-2"></i><span class="hidden sm:inline">Imprimir</span><span class="sm:hidden">Imprimir</span>
-              </button>
-              <button onclick="exportToExcel()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors text-sm">
-                <i class="fa fa-download mr-1 sm:mr-2"></i><span class="hidden sm:inline">Excel</span><span class="sm:hidden">Excel</span>
-              </button>
-              <button onclick="toggleColumnVisibilityModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-50 transition-colors text-sm">
-                <i class="fa fa-eye mr-1 sm:mr-2"></i><span class="hidden sm:inline">Colunas</span><span class="sm:hidden">Colunas</span>
               </button>
               <button onclick="showAddOrderModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm">
                 <i class="fa fa-plus mr-1 sm:mr-2"></i><span class="hidden sm:inline">Pedido</span><span class="sm:hidden">Novo</span>
@@ -899,9 +855,10 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="finalValue">Valor Final</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="orderType">TIPO</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="representative">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Valor Final</th>
+
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">TIPO</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
                   <div class="flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" onclick="toggleColumnFilter('representative')">
                     <span>Representante</span>
                     <svg class="w-4 h-4 text-gray-400 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -916,7 +873,7 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="status">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
                   <div class="flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" onclick="toggleColumnFilter('status')">
                     <span>Status</span>
                     <svg class="w-4 h-4 text-gray-400 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -931,11 +888,9 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="tabPreco">Tab. Preço</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="acerto">% Acerto</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="cx">CX</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="operator">Operador</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="actions">Ações</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">CX</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Operador</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100" id="orderTableBody">
@@ -952,7 +907,7 @@
   <script>
     // Constantes para armazenamento e API
     const STORAGE_KEY = 'order_management_system_data';
-    // API_BASE_URL removido - usando Supabase para sincronização
+    const API_BASE_URL = 'https://api.example.com'; // Substitua pela URL real da sua API
     
     // 选中的订单ID数组
     let selectedOrderIds = [];
@@ -1173,7 +1128,6 @@
         filtered = filtered.filter(order => {
           return (
             (order.nf && order.nf.toLowerCase().includes(searchTerm)) ||
-            (order.pedido && order.pedido.toLowerCase().includes(searchTerm)) ||
             (order.company && order.company.toLowerCase().includes(searchTerm)) ||
             (order.representative && order.representative.toLowerCase().includes(searchTerm)) ||
             (order.operator && order.operator.toLowerCase().includes(searchTerm)) ||
@@ -1438,7 +1392,7 @@
     }
     
     // 应用批量更新或删除
-    async function applyBatchOperations(e) {
+    function applyBatchOperations(e) {
         e.preventDefault();
         
         const operationType = document.querySelector('input[name="operationType"]:checked').value;
@@ -1471,29 +1425,7 @@
             
             showNotification('Pedidos atualizados com sucesso!', 'success');
         } else {
-            // 批量删除 - 立即同步到云端
-            if (isSupabaseInitialized && selectedOrderIds.length > 0) {
-                try {
-                    const { error } = await supabase
-                        .from(window.DB_CONFIG.tableName)
-                        .delete()
-                        .in('id', selectedOrderIds);
-                    
-                    if (error) {
-                        console.error('批量删除云端记录失败:', error);
-                        showNotification('删除失败，请重试', 'error');
-                        return;
-                    }
-                    
-                    console.log('已从云端批量删除记录 IDs:', selectedOrderIds);
-                } catch (error) {
-                    console.error('批量删除操作出错:', error);
-                    showNotification('删除失败，请重试', 'error');
-                    return;
-                }
-            }
-            
-            // 从本地数组中删除
+            // 批量删除 - 直接删除，不需要确认文本
             orders = orders.filter(order => !selectedOrderIds.includes(order.id));
             showNotification(`${selectedOrderIds.length} pedidos excluídos com sucesso!`, 'success');
         }
@@ -1548,15 +1480,8 @@
     // 初始化Supabase
     async function initializeSupabase() {
       try {
-        if (typeof window.supabase === 'undefined') {
-          console.warn('Supabase库未加载，系统将使用本地模式');
-          updateSyncStatus('本地模式 (Supabase未加载)', 'offline');
-          return false;
-        }
-        
         if (typeof window.SUPABASE_CONFIG === 'undefined') {
-          console.warn('Supabase配置未找到，系统将使用本地模式');
-          updateSyncStatus('本地模式 (配置未找到)', 'offline');
+          console.warn('Supabase配置未找到，跳过云同步功能');
           return false;
         }
         
@@ -1565,90 +1490,13 @@
           window.SUPABASE_CONFIG.anonKey
         );
         
-        // 测试连接（添加超时和更好的错误处理）
-        console.log('正在测试Supabase连接...');
-        console.log('Supabase URL:', window.SUPABASE_CONFIG.url);
-        console.log('表名:', window.DB_CONFIG.tableName);
+        // 测试连接
+        const { data, error } = await supabase
+          .from(window.DB_CONFIG.tableName)
+          .select('count', { count: 'exact', head: true });
         
-        // 首先测试基本连接
-        try {
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('连接超时 (5秒)')), 5000)
-          );
-          
-          // 简单的健康检查
-          const healthCheck = fetch(`${window.SUPABASE_CONFIG.url}/rest/v1/`, {
-            method: 'GET',
-            headers: {
-              'apikey': window.SUPABASE_CONFIG.anonKey,
-              'Authorization': `Bearer ${window.SUPABASE_CONFIG.anonKey}`
-            }
-          });
-          
-          const response = await Promise.race([healthCheck, timeoutPromise]);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          
-          console.log('Supabase基础连接成功，正在测试数据表...');
-          
-          // 测试数据表访问
-          const tableTest = supabase
-            .from(window.DB_CONFIG.tableName)
-            .select('count', { count: 'exact', head: true });
-          
-          const { data, error } = await tableTest;
-          
-          if (error) {
-            throw error;
-          }
-          
-        } catch (testError) {
-          const error = testError;
-        
-          console.error('Supabase连接详细错误:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code,
-            stack: error.stack
-          });
-          
-          let errorMessage = '云端连接失败';
-          let detailedMessage = error.message;
-          
-          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-            errorMessage = '网络连接失败';
-            detailedMessage = '无法连接到Supabase服务器，请检查网络连接';
-          } else if (error.message.includes('JWT') || error.message.includes('unauthorized')) {
-            errorMessage = 'API密钥无效';
-            detailedMessage = 'Supabase API密钥无效或已过期';
-          } else if (error.message.includes('relation') || error.message.includes('does not exist')) {
-            errorMessage = '数据表不存在';
-            detailedMessage = `数据表 '${window.DB_CONFIG.tableName}' 不存在，请先创建数据表`;
-          } else if (error.message.includes('连接超时')) {
-            errorMessage = '连接超时';
-            detailedMessage = 'Supabase连接超时，请检查网络或稍后重试';
-          } else if (error.code === 'PGRST116') {
-            errorMessage = '数据表配置错误';
-            detailedMessage = '数据表权限配置错误，请检查RLS策略';
-          } else if (error.message.includes('HTTP 401')) {
-            errorMessage = 'API密钥无效';
-            detailedMessage = 'Supabase API密钥无效，请检查配置';
-          } else if (error.message.includes('HTTP 404')) {
-            errorMessage = 'Supabase项目不存在';
-            detailedMessage = 'Supabase项目URL无效或项目已删除';
-          }
-          
-          console.warn('Supabase连接测试失败，系统将使用本地模式:', detailedMessage);
-          updateSyncStatus(errorMessage, 'offline');
-          
-          // 显示详细错误信息给用户
-          setTimeout(() => {
-            alert(`⚠️ 云端同步配置问题\n\n错误: ${detailedMessage}\n\n请检查:\n• Supabase项目是否存在\n• API密钥是否正确\n• 数据表是否已创建\n• 网络连接是否正常\n\n系统将使用本地模式运行。`);
-          }, 1000);
-          
+        if (error) {
+          console.error('Supabase连接测试失败:', error);
           return false;
         }
         
@@ -1663,8 +1511,8 @@
         
         return true;
       } catch (error) {
-        console.warn('Supabase初始化失败，系统将使用本地模式:', error.message);
-        updateSyncStatus('本地模式 (云端不可用)', 'offline');
+        console.error('Supabase初始化失败:', error);
+        updateSyncStatus('云端连接失败', 'error');
         return false;
       }
     }
@@ -1723,8 +1571,6 @@
             status: order.status || 'Aguardando',
             cx: order.cx || null,
             operator: order.operator || null,
-            tab_preco: order.tabPreco || null,
-            acerto: parseFloat(order.acerto) || 0,
             updated_at: new Date().toISOString()
           }));
           
@@ -1749,15 +1595,7 @@
         
       } catch (error) {
         console.error('同步到云端失败:', error);
-        
-        // 检查是否是网络连接问题
-        if (error.message && error.message.includes('Failed to fetch')) {
-          updateSyncStatus('网络连接失败，使用本地存储', 'offline');
-          console.log('网络不可用，数据已保存到本地存储');
-        } else {
-          updateSyncStatus('同步失败', 'error');
-        }
-        
+        updateSyncStatus('同步失败', 'error');
         return false;
       }
     }
@@ -1795,8 +1633,6 @@
             status: item.status,
             cx: item.cx,
             operator: item.operator,
-            tabPreco: item.tab_preco || '',
-            acerto: parseFloat(item.acerto) || 0,
             createdAt: item.created_at,
             updatedAt: item.updated_at
           }));
@@ -1823,134 +1659,20 @@
         
       } catch (error) {
         console.error('从云端加载数据失败:', error);
-        
-        // 检查是否是网络连接问题
-        if (error.message && error.message.includes('Failed to fetch')) {
-          updateSyncStatus('网络连接失败，使用本地数据', 'offline');
-          console.log('网络不可用，将使用本地存储的数据');
-        } else {
-          updateSyncStatus('云端加载失败', 'error');
-        }
-        
+        updateSyncStatus('加载失败', 'error');
         return false;
       }
     }
     
-    // 清除本地存储并重新加载数据
-    function clearStorageAndReload() {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem('lastLocalSave');
-      localStorage.removeItem('lastCloudLoad');
-      localStorage.removeItem('lastCloudSync');
-      console.log('本地存储已清除，正在重新加载数据...');
-      location.reload();
-    }
-    
-    // 显示本地存储调试信息
-    function showStorageDebug() {
-      const storageData = localStorage.getItem(STORAGE_KEY);
-      const lastLocalSave = localStorage.getItem('lastLocalSave');
-      const lastCloudLoad = localStorage.getItem('lastCloudLoad');
-      const lastCloudSync = localStorage.getItem('lastCloudSync');
-      
-      let parsedData = null;
-      let dataCount = 0;
-      let parseError = null;
-      
-      try {
-        if (storageData) {
-          parsedData = JSON.parse(storageData);
-          dataCount = Array.isArray(parsedData) ? parsedData.length : 0;
-        }
-      } catch (error) {
-        parseError = error.message;
-      }
-      
-      const debugInfo = `
-📊 本地存储调试信息
-
-🔍 存储状态:
-• 存储键: ${STORAGE_KEY}
-• 数据存在: ${storageData ? '是' : '否'}
-• 数据大小: ${storageData ? (storageData.length / 1024).toFixed(2) + ' KB' : '0 KB'}
-• 记录数量: ${dataCount}
-• 内存中订单数: ${orders.length}
-• 过滤后订单数: ${filteredOrders.length}
-
-⏰ 时间戳:
-• 最后本地保存: ${lastLocalSave || '未记录'}
-• 最后云端加载: ${lastCloudLoad || '未记录'}
-• 最后云端同步: ${lastCloudSync || '未记录'}
-
-${parseError ? '❌ 数据解析错误: ' + parseError : '✅ 数据格式正常'}
-
-🔧 数据一致性检查:
-• 存储数据 = 内存数据: ${dataCount === orders.length ? '✅ 一致' : '❌ 不一致'}
-
-${storageData && dataCount > 0 ? '📝 存储数据预览 (前3条):' : ''}
-${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, index) => 
-  `${index + 1}. ID: ${order.id}, Pedido: ${order.pedido}, Company: ${order.company}`
-).join('\n') : ''}
-      `;
-      
-      alert(debugInfo);
-    }
-    
-    // 显示同步诊断信息
-    function showSyncDiagnostic() {
-      const diagnosticInfo = {
-        'Supabase初始化状态': isSupabaseInitialized ? '✅ 已初始化' : '❌ 未初始化',
-        '网络连接状态': navigator.onLine ? '✅ 在线' : '❌ 离线',
-        '配置文件加载': typeof window.SUPABASE_CONFIG !== 'undefined' ? '✅ 已加载' : '❌ 未加载',
-        '自动同步状态': window.SYNC_CONFIG?.autoSync ? '✅ 已启用' : '❌ 已禁用',
-        '本地数据条数': orders.length + ' 条',
-        '上次云端同步': localStorage.getItem('lastCloudSync') || '从未同步',
-        '上次本地保存': localStorage.getItem('lastLocalSave') || '从未保存'
-      };
-      
-      let message = '🔍 同步状态诊断:\n\n';
-      for (const [key, value] of Object.entries(diagnosticInfo)) {
-        message += `${key}: ${value}\n`;
-      }
-      
-      message += '\n💡 如果同步失败，请检查:\n';
-      message += '1. 网络连接是否正常\n';
-      message += '2. 是否能访问外网\n';
-      message += '3. 浏览器是否阻止了跨域请求';
-      
-      alert(message);
-    }
-    
-    // 合并订单数据（本地修改优先）
+    // 合并订单数据（云端优先）
     function mergeOrderData(localOrders, cloudOrders) {
-      const merged = [];
-      const processedIds = new Set();
+      const merged = [...cloudOrders];
       
-      // 首先处理本地数据（保留本地修改）
+      // 添加本地独有的数据
       localOrders.forEach(localOrder => {
-        const cloudOrder = cloudOrders.find(cloudOrder => cloudOrder.id === localOrder.id);
-        if (cloudOrder) {
-          // 如果云端也有这条数据，比较更新时间，优先使用较新的数据
-          const localTime = new Date(localOrder.updatedAt || localOrder.createdAt || 0);
-          const cloudTime = new Date(cloudOrder.updatedAt || cloudOrder.createdAt || 0);
-          
-          // 如果本地数据更新时间较新，或者时间相同但本地有未同步的修改，使用本地数据
-          if (localTime >= cloudTime) {
-            merged.push(localOrder);
-          } else {
-            merged.push(cloudOrder);
-          }
-        } else {
-          // 本地独有的数据
+        const existsInCloud = cloudOrders.find(cloudOrder => cloudOrder.id === localOrder.id);
+        if (!existsInCloud) {
           merged.push(localOrder);
-        }
-        processedIds.add(localOrder.id);
-      });
-      
-      // 添加云端独有的数据
-      cloudOrders.forEach(cloudOrder => {
-        if (!processedIds.has(cloudOrder.id)) {
-          merged.push(cloudOrder);
         }
       });
       
@@ -1961,13 +1683,8 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
     function startAutoSync() {
       if (window.SYNC_CONFIG.autoSync && window.SYNC_CONFIG.syncInterval > 0) {
         setInterval(async () => {
-          if (isSupabaseInitialized && navigator.onLine) {
-            const success = await syncToCloud();
-            if (!success) {
-              console.log('自动同步失败，将在下次间隔重试');
-            }
-          } else if (!navigator.onLine) {
-            updateSyncStatus('离线模式', 'offline');
+          if (isSupabaseInitialized) {
+            await syncToCloud();
           }
         }, window.SYNC_CONFIG.syncInterval);
         
@@ -2154,13 +1871,14 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 editable-cell" data-field="nf" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.nf)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="pedido" data-order-id="${order.id}" ondblclick="editCell(this)">${formatPedido(order.pedido)}</td>
                     <td class="px-3 py-2 editable-cell" data-field="company" data-order-id="${order.id}" ondblclick="editCell(this)">
-                        <div class="text-sm font-medium text-gray-500">${formatCompanyNameSimple(order.company)}</div>
+                        <div class="text-sm font-medium text-gray-500">${formatCompanyName(order.company)}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="issueDate" data-order-id="${order.id}" ondblclick="editCell(this)">${formatDate(order.issueDate)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-column="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)">${formatCurrency(order.finalValue)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="orderTypeDescription" data-column="orderType" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.orderTypeDescription)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="representative" data-column="representative" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.representative)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap" data-column="status">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)">${formatCurrency(order.finalValue)}</td>
+
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="orderTypeDescription" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.orderTypeDescription)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="representative" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.representative)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.class} cursor-pointer hover:opacity-80" onclick="toggleStatusDropdown(${order.id}, event)">
                             <i class="fa ${statusInfo.icon} mr-1"></i>
                             ${formatValue(order.status)}
@@ -2173,11 +1891,9 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Cancelado')">Cancelado</div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="tabPreco" data-column="tabPreco" data-order-id="${order.id}" ondblclick="editCell(this)">${order.tabPreco ? (order.tabPreco.includes('-') ? order.tabPreco.split('-').slice(1).join('-') : order.tabPreco) : ''}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="acerto" data-column="acerto" data-order-id="${order.id}" ondblclick="editCell(this)">${formatAcerto(order.acerto)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-column="cx" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.cx)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-column="operator" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.operator)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" data-column="actions">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.cx)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.operator)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
                             <button onclick="editOrder(${order.id})" class="text-primary hover:text-primary/80 transition-colors">
                                 <i class="fa fa-edit"></i>
@@ -2190,9 +1906,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                 </tr>
             `;
         }).join('');
-        
-        // 应用列隐藏状态到新渲染的行
-        updateColumnVisibility();
     }
     
     // 更新过滤后的统计信息
@@ -2202,14 +1915,10 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         const completed = filteredOrders.filter(order => ['Concluído', 'Finalizado'].includes(order.status)).length;
         const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.finalValue, 0);
         
-        // 计算唯一客户数量
-        const uniqueClients = new Set(filteredOrders.map(order => order.company).filter(company => company && company.trim() !== '')).size;
-        
         document.getElementById('totalOrders').textContent = total;
         document.getElementById('pendingOrders').textContent = pending;
         document.getElementById('completedOrders').textContent = completed;
         document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
-        document.getElementById('totalClients').textContent = uniqueClients;
     }
     
     // 格式化货币
@@ -2222,6 +1931,8 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             currency: 'BRL'
         }).format(value);
     }
+    
+
     
     // 格式化日期
     function formatDate(dateString) {
@@ -2288,34 +1999,10 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         return company;
     }
     
-    // 格式化公司名称（简单版本，只显示横杠后面的内容）
-    function formatCompanyNameSimple(company) {
-        if (!company || company === undefined) {
-            return '';
-        }
-        // 检查是否包含 " - " 分隔符
-        if (company.includes(' - ')) {
-            return company.split(' - ')[1] || '';
-        }
-        return company;
-    }
-    
     // 通用格式化函数 - 处理 undefined 值
     function formatValue(value) {
         if (value === undefined || value === null) {
             return '';
-        }
-        return value;
-    }
-    
-    // 格式化% Acerto字段 - 当数值为0时不显示，四舍五入到整数
-    function formatAcerto(value) {
-        if (value === undefined || value === null || value === 0 || value === '0') {
-            return '';
-        }
-        // 如果是数字，四舍五入到整数并添加%符号
-        if (!isNaN(value) && value !== '') {
-            return Math.round(parseFloat(value)) + '%';
         }
         return value;
     }
@@ -2446,7 +2133,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             document.getElementById('editCompany').value = order.company || '';
             document.getElementById('editIssueDate').value = order.issueDate || '';
             document.getElementById('editFinalValue').value = order.finalValue || '';
-            document.getElementById('editTabPreco').value = order.tabPreco || '';
             document.getElementById('editOrderTypeDescription').value = order.orderTypeDescription || '';
             document.getElementById('editRepresentative').value = order.representative || '';
             document.getElementById('editStatus').value = order.status || 'Pendente';
@@ -2463,41 +2149,16 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
     }
     
     // 删除订单
-    async function deleteOrder(id) {
+    function deleteOrder(id) {
         if (confirm('Tem certeza que deseja excluir este pedido?')) {
-            // 从本地数组中删除
             orders = orders.filter(order => order.id !== id);
-            
-            // 立即同步到云端删除
-            if (isSupabaseInitialized) {
-                try {
-                    const { error } = await supabase
-                        .from(window.DB_CONFIG.tableName)
-                        .delete()
-                        .eq('id', id);
-                    
-                    if (error) {
-                        console.error('删除云端记录失败:', error);
-                        showNotification('删除失败，请重试', 'error');
-                        return;
-                    }
-                    
-                    console.log('已从云端删除记录 ID:', id);
-                } catch (error) {
-                    console.error('删除操作出错:', error);
-                    showNotification('删除失败，请重试', 'error');
-                    return;
-                }
-            }
-            
             saveToLocalStorage(); // Salvar automaticamente
             applyFilters();
-            showNotification('Pedido excluído com sucesso!', 'success');
         }
     }
     
     // 应用批量更新或删除
-    async function applyBatchOperations(e) {
+    function applyBatchOperations(e) {
         e.preventDefault();
         
         const operationType = document.querySelector('input[name="operationType"]:checked').value;
@@ -2559,48 +2220,8 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         if (data) {
           orders = JSON.parse(data);
           console.log('Dados carregados do armazenamento local com sucesso');
-          // 更新页面显示
-          applyFilters();
-          updateFilteredStatistics();
         } else {
           console.log('Nenhum dado encontrado no armazenamento local, usando dados padrão');
-          // 添加示例数据，包含用户要搜索的订单号2516498
-          orders = [
-            {
-              id: 1,
-              nf: 'NF001',
-              pedido: '2516498',
-              company: 'TUDO PRESENTE EIRELI',
-              issueDate: '2024-01-15',
-              finalValue: 15000.00,
-              orderTypeDescription: 'Venda Normal',
-              representative: 'João Silva',
-              status: 'Aguardando',
-              cx: 'CX001',
-              operator: 'Maria Santos',
-              tabPreco: 'TAB001',
-              acerto: 85.5,
-              createdAt: new Date().toISOString()
-            },
-            {
-              id: 2,
-              nf: 'NF002',
-              pedido: '2515664',
-              company: 'Mini good',
-              issueDate: '2024-01-16',
-              finalValue: 8500.00,
-              orderTypeDescription: 'Venda Especial',
-              representative: 'Ana Costa',
-              status: 'Processando',
-              cx: 'CX002',
-              operator: 'Pedro Lima',
-              tabPreco: 'TAB002',
-              acerto: 92.3,
-              createdAt: new Date().toISOString()
-            }
-          ];
-          // 保存示例数据到本地存储
-          saveToLocalStorage();
         }
       } catch (error) {
         console.error('Falha ao carregar dados do armazenamento local:', error);
@@ -2611,7 +2232,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
     async function saveToLocalStorage() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
-        localStorage.setItem('lastLocalSave', new Date().toISOString());
         console.log('Dados salvos no armazenamento local');
         
         // Tentar sincronizar com a nuvem se o Supabase estiver inicializado
@@ -2626,7 +2246,49 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
       }
     }
 
-    // Função syncWithServer removida - usando syncToCloud() com Supabase
+    // Sincronizar dados com o servidor
+    async function syncWithServer() {
+      updateSyncStatus('Sincronizando...', 'syncing');
+      
+      try {
+        // Enviar dados locais para o servidor
+        const response = await fetch(`${API_BASE_URL}/orders/sync`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orders: orders,
+            lastSync: localStorage.getItem('lastSync')
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          
+          // Atualizar dados locais
+          if (result.orders) {
+            orders = result.orders;
+            saveToLocalStorage();
+            applyFilters();
+            updateFilteredStatistics();
+          }
+          
+          localStorage.setItem('lastSync', new Date().toISOString());
+          updateSyncStatus('Sincronizado', 'success');
+        } else {
+          throw new Error('Resposta do servidor com erro');
+        }
+      } catch (error) {
+        console.error('Falha na sincronização:', error);
+        updateSyncStatus('Falha na sincronização', 'error');
+        
+        // Se for um erro de rede, mostrar modo offline
+        if (error.name === 'TypeError') {
+          updateSyncStatus('Modo offline', 'offline');
+        }
+      }
+    }
 
     // Atualizar indicador de status de sincronização
     function updateSyncStatus(message, type) {
@@ -2671,28 +2333,8 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         const syncButton = document.createElement('button');
         syncButton.className = 'p-2 text-gray-500 hover:text-primary transition-colors rounded-lg hover:bg-gray-100';
         syncButton.innerHTML = '<i class="fa fa-refresh"></i>';
-        syncButton.title = '手动同步到云端';
-        
-        // 添加诊断按钮
-        const diagnosticButton = document.createElement('button');
-        diagnosticButton.className = 'p-2 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-100';
-        diagnosticButton.innerHTML = '';
-        diagnosticButton.title = '同步状态诊断';
-        diagnosticButton.onclick = showSyncDiagnostic;
-        
-        // 添加本地存储调试按钮
-        const debugButton = document.createElement('button');
-        debugButton.className = 'p-2 text-gray-500 hover:text-orange-600 transition-colors rounded-lg hover:bg-gray-100';
-        debugButton.innerHTML = '';
-        debugButton.title = '本地存储调试';
-        debugButton.onclick = showStorageDebug;
-        syncButton.onclick = async () => {
-          if (isSupabaseInitialized) {
-            await syncToCloud();
-          } else {
-            updateSyncStatus('请先连接云端', 'error');
-          }
-        };
+        syncButton.title = 'Sincronizar dados';
+        syncButton.onclick = syncWithServer;
         
         const syncStatusElement = document.createElement('div');
         syncStatusElement.id = 'syncStatus';
@@ -2703,8 +2345,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         `;
         
         syncContainer.appendChild(syncButton);
-        syncContainer.appendChild(diagnosticButton);
-        syncContainer.appendChild(debugButton);
         syncContainer.appendChild(syncStatusElement);
         headerRight.appendChild(syncContainer);
       }
@@ -2715,15 +2355,11 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         // 初始化Supabase
         await initializeSupabase();
         
-        // 优先从本地加载数据，保持用户的修改
-        loadFromLocalStorage();
-        
-        // 然后尝试与云端同步（不覆盖本地数据）
-        if (isSupabaseInitialized) {
-            // 延迟同步，确保本地数据优先
-            setTimeout(async () => {
-                await syncToCloud();
-            }, 1000);
+        // 先从云端加载数据，如果失败则从本地加载
+        const cloudLoadSuccess = await loadFromCloud();
+        if (!cloudLoadSuccess) {
+            // Carregar dados do armazenamento local
+            loadFromLocalStorage();
         }
         
         // 初始化过滤器
@@ -2740,22 +2376,19 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         
         // Configurar sincronização automática (a cada 5 minutos)
         setInterval(() => {
-          if (navigator.onLine && isSupabaseInitialized) {
-            syncToCloud();
+          if (navigator.onLine) {
+            syncWithServer();
           }
         }, 5 * 60 * 1000);
         
         // Adicionar evento para sincronização quando voltar online
         window.addEventListener('online', () => {
-          updateSyncStatus('网络已恢复', 'success');
-          // 尝试同步到云端
-          if (isSupabaseInitialized) {
-            syncToCloud();
-          }
+          updateSyncStatus('Reconectado', 'success');
+          syncWithServer();
         });
         
         window.addEventListener('offline', () => {
-          updateSyncStatus('网络已断开', 'offline');
+          updateSyncStatus('Offline', 'offline');
         });
         
         // 添加编辑表单提交事件监听
@@ -2775,7 +2408,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                     company: document.getElementById('editCompany').value,
                     issueDate: document.getElementById('editIssueDate').value,
                     finalValue: parseFloat(document.getElementById('editFinalValue').value),
-                    tabPreco: document.getElementById('editTabPreco').value || '',
                     orderTypeDescription: document.getElementById('editOrderTypeDescription').value,
                     representative: document.getElementById('editRepresentative').value,
                     status: document.getElementById('editStatus').value,
@@ -2819,129 +2451,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
       e.returnValue = '';
     }
   });
-
-  // 列隐藏功能
-  let columnVisibility = {
-    tabPreco: true,
-    cx: true,
-    operator: true,
-    acerto: true,
-    representative: true,
-    orderType: true,
-    finalValue: true,
-    status: true
-  };
-
-  // 从localStorage加载列可见性设置
-  function loadColumnVisibility() {
-    const saved = localStorage.getItem('columnVisibility');
-    if (saved) {
-      try {
-        const savedVisibility = JSON.parse(saved);
-        Object.keys(columnVisibility).forEach(column => {
-          if (savedVisibility.hasOwnProperty(column)) {
-            columnVisibility[column] = savedVisibility[column];
-          }
-        });
-      } catch (e) {
-        console.error('Error loading column visibility:', e);
-      }
-    }
-  }
-
-  // 保存列可见性设置到localStorage
-  function saveColumnVisibility() {
-    localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility));
-  }
-
-  // 打开列隐藏模态框
-  function toggleColumnVisibilityModal() {
-    document.getElementById('columnVisibilityModal').classList.remove('hidden');
-    // 确保加载最新的列可见性设置
-    loadColumnVisibility();
-    // 更新开关状态
-    Object.keys(columnVisibility).forEach(column => {
-      const toggle = document.getElementById(`toggle-${column}`);
-      if (toggle) {
-        toggle.checked = columnVisibility[column];
-      }
-    });
-  }
-
-  // 关闭列隐藏模态框
-  function closeColumnVisibilityModal() {
-    document.getElementById('columnVisibilityModal').classList.add('hidden');
-  }
-
-  // 切换列显示/隐藏
-  function toggleColumn(columnName) {
-    columnVisibility[columnName] = !columnVisibility[columnName];
-    saveColumnVisibility();
-    updateColumnVisibility();
-  }
-
-  // 更新列显示状态
-  function updateColumnVisibility() {
-    Object.keys(columnVisibility).forEach(column => {
-      const isVisible = columnVisibility[column];
-      
-      // 隐藏/显示表头
-      const headerCell = document.querySelector(`th[data-column="${column}"]`);
-      if (headerCell) {
-        headerCell.style.display = isVisible ? '' : 'none';
-      }
-      
-      // 隐藏/显示数据行中的对应列
-      const columnIndex = getColumnIndex(column);
-      if (columnIndex !== -1) {
-        const rows = document.querySelectorAll('#orderTableBody tr');
-        rows.forEach(row => {
-          const cell = row.children[columnIndex];
-          if (cell) {
-            cell.style.display = isVisible ? '' : 'none';
-          }
-        });
-      }
-    });
-  }
-
-  // 获取列索引
-  function getColumnIndex(columnName) {
-    const headers = document.querySelectorAll('thead th');
-    for (let i = 0; i < headers.length; i++) {
-      if (headers[i].getAttribute('data-column') === columnName) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  // 重置列显示状态
-  function resetColumnVisibility() {
-    Object.keys(columnVisibility).forEach(column => {
-      columnVisibility[column] = true;
-      const toggle = document.getElementById(`toggle-${column}`);
-      if (toggle) {
-        toggle.checked = true;
-      }
-    });
-    saveColumnVisibility();
-    updateColumnVisibility();
-  }
-
-  // 页面加载时初始化列显示状态
-  document.addEventListener('DOMContentLoaded', function() {
-    loadColumnVisibility();
-    updateColumnVisibility();
-    // 更新开关状态
-    Object.keys(columnVisibility).forEach(column => {
-      const toggle = document.getElementById(`toggle-${column}`);
-      if (toggle) {
-        toggle.checked = columnVisibility[column];
-      }
-    });
-  });
-
   </script>
 
   <!-- 添加订单模态框 -->
@@ -2977,11 +2486,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             <div>
               <label for="finalValue" class="block text-sm font-medium text-gray-700 mb-1">Valor Final</label>
               <input type="number" id="finalValue" name="finalValue" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div>
-              <label for="tabPreco" class="block text-sm font-medium text-gray-700 mb-1">Tab. Preço</label>
-              <input type="text" id="tabPreco" name="tabPreco" placeholder="Ex: 001-IMPORTADORA" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             
             <div>
@@ -3064,11 +2568,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             <div>
               <label for="editFinalValue" class="block text-sm font-medium text-gray-700 mb-1">Valor Final</label>
               <input type="number" id="editFinalValue" name="editFinalValue" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            
-            <div>
-              <label for="editTabPreco" class="block text-sm font-medium text-gray-700 mb-1">Tab. Preço</label>
-              <input type="text" id="editTabPreco" name="editTabPreco" placeholder="Ex: 001-IMPORTADORA" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             
             <div>
@@ -3182,7 +2681,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             company: document.getElementById('company').value,
             issueDate: document.getElementById('issueDate').value,
             finalValue: parseFloat(document.getElementById('finalValue').value),
-            tabPreco: document.getElementById('tabPreco').value || '',
             orderTypeDescription: document.getElementById('orderTypeDescription').value,
             representative: document.getElementById('representative').value,
             status: document.getElementById('status').value,
@@ -3324,31 +2822,9 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                         if (item['Cliente']) item.company = item['Cliente'];
                         if (item['Desc Tipo Pedido']) item.orderTypeDescription = item['Desc Tipo Pedido'];
                         if (item['Representante']) item.representative = item['Representante'];
-                        // 处理Tab. Preço字段的多种表头格式
-                        const tabPrecoKeys = Object.keys(item).filter(key => {
-                            const normalizedKey = key.toLowerCase().replace(/[\s\.]/g, '');
-                            return normalizedKey === 'tabpreco' || normalizedKey === 'tabpreço';
-                        });
-                        if (tabPrecoKeys.length > 0) {
-                            item.tabPreco = item[tabPrecoKeys[0]] || '';
-                        } else if (item['Tab. Preço'] || item['Tab Preço'] || item['TabPreco']) {
-                            item.tabPreco = item['Tab. Preço'] || item['Tab Preço'] || item['TabPreco'] || '';
-                        }
                         if (item['CX']) item.cx = item['CX'];
                         if (item['Operador']) item.operator = item['Operador'];
-                        
-                        // 处理% Acerto字段的多种表头格式
-                        const acertoKeys = Object.keys(item).filter(key => {
-                            const normalizedKey = key.toLowerCase().replace(/[\s%\.]/g, '');
-                            return normalizedKey === 'acerto' || normalizedKey === 'percentacerto';
-                        });
-                        if (acertoKeys.length > 0) {
-                            const acertoValue = item[acertoKeys[0]];
-                            item.acerto = parseFloat(acertoValue) || 0;
-                        } else if (item['% Acerto'] || item['Acerto'] || item['%Acerto']) {
-                            const acertoValue = item['% Acerto'] || item['Acerto'] || item['%Acerto'];
-                            item.acerto = parseFloat(acertoValue) || 0;
-                        }
+
                         
                         // 设置默认状态
                         if (!item.status) {
@@ -3382,6 +2858,22 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                             newCount++;
                         }
                     });
+                    
+                    // 调试：显示导入后的数据
+                    console.log('=== IMPORTED DATA DEBUG ===');
+                    console.log('Updated orders:', updatedCount, 'New orders:', newCount);
+                    
+                    // 显示最后几个订单的tabPreco字段
+                    const lastOrders = orders.slice(-Math.min(5, orders.length));
+                    lastOrders.forEach((order, index) => {
+                        console.log(`Order ${order.id}:`, {
+                            pedido: order.pedido,
+                            tabPreco: order.tabPreco,
+                            tabPrecoType: typeof order.tabPreco,
+                            finalValue: order.finalValue
+                        });
+                    });
+                    console.log('=== END DEBUG ===');
                     
                     // Salvar alterações
                     saveToLocalStorage();
@@ -3445,7 +2937,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             tr:nth-child(even) { background-color: #F9FAFB; }
             .print-info { text-align: right; font-size: 12px; color: #86909C; margin-bottom: 20px; }
             .status-aguardando { color: #FF7D00; }
-            .status-em-separacao { color: #165DFF; }
+            .status-processando { color: #165DFF; }
             .status-concluido { color: #00B42A; }
             .status-cancelado { color: #F53F3F; }
             .nf-column { color: #16a34a; font-weight: bold; }
@@ -3466,9 +2958,9 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                 <th>TIPO</th>
                 <th>Representante</th>
                 <th>Status</th>
-                <th>Tab. Preço</th>
-                <th>% Acerto</th>
                 <th>CX</th>
+                <th>Operador</th>
+                <th>Modalidade</th>
               </tr>
             </thead>
             <tbody>
@@ -3482,7 +2974,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         if (status.includes('aguardando') || status.includes('pendente')) {
           statusClass = 'status-aguardando';
         } else if (status.includes('processando') || status.includes('em andamento')) {
-          statusClass = 'status-em-separacao';
+          statusClass = 'status-processando';
         } else if (status.includes('concluído') || status.includes('finalizado')) {
           statusClass = 'status-concluido';
         } else if (status.includes('cancelado')) {
@@ -3495,42 +2987,21 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
           currency: 'BRL'
         }).format(order.finalValue || 0);
         
-        // 格式化日期为DD/MM/YYYY
-        const formatDateForPrint = (dateString) => {
-          if (!dateString || dateString === undefined) {
-            return '';
-          }
-          
-          let date;
-          // 如果是YYYY-MM-DD格式，直接解析避免时区问题
-          if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            const [year, month, day] = dateString.split('-');
-            date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-          } else {
-            date = new Date(dateString);
-          }
-          
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const year = date.getFullYear();
-          return `${day}/${month}/${year}`;
-        };
-        
         // 添加行数据
         printContent += `
           <tr>
             <td>${index + 1}</td>
             <td class="nf-column">${formatValue(order.nf)}</td>
             <td>${formatPedido(order.pedido)}</td>
-            <td>${formatCompanyNameSimple(order.company)}</td>
-            <td>${formatDateForPrint(order.issueDate)}</td>
+            <td>${formatValue(order.company)}</td>
+            <td>${formatValue(order.issueDate)}</td>
             <td>${formattedValue}</td>
             <td>${formatValue(order.orderTypeDescription)}</td>
             <td>${formatValue(order.representative)}</td>
             <td class="${statusClass}">${formatValue(order.status)}</td>
-            <td>${order.tabPreco ? (order.tabPreco.includes('-') ? order.tabPreco.split('-').slice(1).join('-') : order.tabPreco) : ''}</td>
-            <td>${formatAcerto(order.acerto)}</td>
             <td>${formatValue(order.cx)}</td>
+            <td>${formatValue(order.operator)}</td>
+            <td>${formatValue(order.deliveryMode)}</td>
           </tr>
         `;
       });
@@ -3571,100 +3042,11 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         }
         return stringValue;
       };
-      
-      printWindow.formatCompanyNameSimple = function(company) {
-         if (!company || company === undefined) {
-           return '';
-         }
-         // 检查是否包含 " - " 分隔符
-         if (company.includes(' - ')) {
-           return company.split(' - ')[1] || '';
-         }
-         return company;
-       };
     }
     
     // 辅助函数：格式化值（处理undefined或null）
     function formatValue(value) {
       return value !== undefined && value !== null ? value : '';
-    }
-    
-    // 导出到Excel函数
-    function exportToExcel() {
-      // 获取当前过滤后的订单
-      const ordersToExport = filteredOrders.length > 0 ? filteredOrders : orders;
-      
-      if (ordersToExport.length === 0) {
-        showNotification('Nenhum dado para exportar', 'warning');
-        return;
-      }
-      
-      // 准备导出数据
-      const exportData = ordersToExport.map((order, index) => {
-        return {
-          'Nº': index + 1,
-          'NF': order.nf || '',
-          'Pedido': order.pedido || '',
-          'Cliente': order.company || '',
-          'DATA': order.issueDate || '',
-          'Valor Final': order.finalValue || 0,
-          'TIPO': order.orderTypeDescription || '',
-          'Representante': order.representative || '',
-          'Status': order.status || '',
-          'Tab. Preço': order.tabPreco || '',
-          '% Acerto': order.acerto ? Math.round(parseFloat(order.acerto)) : 0,
-          'CX': order.cx || ''
-        };
-      });
-      
-      // 创建工作簿
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      
-      // 设置列宽
-      const colWidths = [
-        { wch: 5 },   // Nº
-        { wch: 12 },  // NF
-        { wch: 15 },  // Pedido
-        { wch: 30 },  // Cliente
-        { wch: 12 },  // DATA
-        { wch: 15 },  // Valor Final
-        { wch: 20 },  // TIPO
-        { wch: 20 },  // Representante
-        { wch: 15 },  // Status
-        { wch: 20 },  // Tab. Preço
-        { wch: 12 },  // % Acerto
-        { wch: 10 }   // CX
-      ];
-      ws['!cols'] = colWidths;
-      
-      // 添加工作表到工作簿
-      XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');
-      
-      // 生成文件名（包含当前日期时间）
-      const now = new Date();
-      const dateStr = now.toISOString().slice(0, 10);
-      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
-      const filename = `Pedidos_${dateStr}_${timeStr}.xlsx`;
-      
-      // 下载文件
-      XLSX.writeFile(wb, filename);
-      
-      showNotification(`Excel exportado com sucesso: ${filename}`, 'success');
-    }
-    
-    // 格式化Pedido号（移除前导零）
-    function formatPedido(value) {
-      if (value === undefined || value === null) {
-        return '';
-      }
-      // 将值转换为字符串并移除前导零
-      const stringValue = String(value);
-      // 使用parseInt然后转回字符串来移除前导零，但保持原始格式如果不是纯数字
-      if (/^\d+$/.test(stringValue)) {
-        return String(parseInt(stringValue, 10));
-      }
-      return stringValue;
     }
     
     // 切换状态下拉菜单显示/隐藏
@@ -3700,12 +3082,8 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         const orderIndex = orders.findIndex(order => order.id === orderId);
         if (orderIndex === -1) return;
         
-        // 更新状态和时间戳
+        // 更新状态
         orders[orderIndex].status = newStatus;
-        orders[orderIndex].updatedAt = new Date().toISOString();
-        
-        // 保存到本地存储
-        saveToLocalStorage();
         
         // 关闭下拉菜单
         const dropdown = document.getElementById(`status-dropdown-${orderId}`);
@@ -3817,8 +3195,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                     name: customerName,
                     totalOrders: 0,
                     totalValue: 0,
-                    tabPreco: order.tabPreco || '',
-                    acerto: order.acerto || 0,
                     orders: []
                 };
             }
@@ -3826,16 +3202,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             customerData[customerName].totalOrders++;
             customerData[customerName].totalValue += parseFloat(order.finalValue) || 0;
             customerData[customerName].orders.push(order);
-            
-            // 更新Tab. Preço信息（使用最新的订单信息）
-            if (order.tabPreco) {
-                customerData[customerName].tabPreco = order.tabPreco;
-            }
-            
-            // 更新% Acerto信息（使用最新的订单信息）
-            if (order.acerto && order.acerto > 0) {
-                customerData[customerName].acerto = order.acerto;
-            }
         });
         
         return customerData;
@@ -3864,16 +3230,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         
         // 按订单总金额排序
         const sortedCustomers = Object.values(customerData)
-            .filter(customer => {
-                // 搜索客户名称
-                if (customer.name.toLowerCase().includes(searchTerm)) {
-                    return true;
-                }
-                // 搜索客户的订单号码（Pedido）
-                return customer.orders.some(order => 
-                    order.pedido && order.pedido.toLowerCase().includes(searchTerm)
-                );
-            })
+            .filter(customer => customer.name.toLowerCase().includes(searchTerm))
             .sort((a, b) => b.totalValue - a.totalValue);
         
         let html = '';
@@ -3884,18 +3241,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
             sortedCustomers.forEach(customer => {
                 const isSelected = selectedCustomer === customer.name;
                 const displayName = formatCustomerName(customer.name);
-                // 处理Tab. Preço显示逻辑
-                let tabPrecoDisplay = '';
-                if (customer.tabPreco) {
-                    let baseTabPreco = customer.tabPreco.includes('-') ? customer.tabPreco.split('-').slice(1).join('-') : customer.tabPreco;
-                    
-                    // 如果Tab. Preço是IMPORTADORA且有% Acerto数值，则显示为'IMPORTADORA + 数值'
-                    if (baseTabPreco === 'IMPORTADORA' && customer.acerto && customer.acerto > 0) {
-                        tabPrecoDisplay = `IMPORTADORA + ${Math.round(customer.acerto)}`;
-                    } else {
-                        tabPrecoDisplay = baseTabPreco;
-                    }
-                }
                 html += `
                     <div class="customer-item p-2 rounded-lg border transition-all duration-200 cursor-pointer ${
                         isSelected ? 'bg-white border-blue-300 shadow-md' : 'bg-white border-gray-200 hover:border-blue-200 hover:shadow-sm'
@@ -3905,7 +3250,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                                 <h4 class="font-semibold text-gray-800 text-sm leading-tight" title="${customer.name}">
                                     ${displayName}
                                 </h4>
-                                ${tabPrecoDisplay ? `<div class="text-xs text-gray-600 mt-1">Tab. Preço: ${tabPrecoDisplay}${customer.acerto && customer.acerto !== 0 ? ` ${Math.round(customer.acerto)}%` : ''}</div>` : ''}
                             </div>
                             <div class="flex justify-center items-center space-x-3">
                                 <div class="bg-white">
@@ -4159,99 +3503,6 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 列隐藏控制模态框 -->
-  <div id="columnVisibilityModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-gray-800">Controlar Exibição de Colunas</h2>
-            <button onclick="closeColumnVisibilityModal()" class="text-gray-500 hover:text-gray-700">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <div class="space-y-3">
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">Tab. Preço</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-tabPreco" class="sr-only peer" checked onchange="toggleColumn('tabPreco')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">CX</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-cx" class="sr-only peer" checked onchange="toggleColumn('cx')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">Operador</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-operator" class="sr-only peer" checked onchange="toggleColumn('operator')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">Representante</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-representative" class="sr-only peer" checked onchange="toggleColumn('representative')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">TIPO</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-orderType" class="sr-only peer" checked onchange="toggleColumn('orderType')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">Valor Final</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-finalValue" class="sr-only peer" checked onchange="toggleColumn('finalValue')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">Status</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-status" class="sr-only peer" checked onchange="toggleColumn('status')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-            
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <span class="text-sm font-medium text-gray-700">% Acerto</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="toggle-acerto" class="sr-only peer" checked onchange="toggleColumn('acerto')">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-          </div>
-          
-          <div class="flex justify-end space-x-3 mt-6">
-            <button type="button" onclick="resetColumnVisibility()" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
-              Redefinir
-            </button>
-            <button type="button" onclick="closeColumnVisibilityModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-              Confirmar
-            </button>
-          </div>
         </div>
       </div>
     </div>
