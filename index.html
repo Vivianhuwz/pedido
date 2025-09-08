@@ -3561,6 +3561,9 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         // 更新状态
         orders[orderIndex].status = newStatus;
         
+        // 保存到本地存储
+        saveToLocalStorage();
+        
         // 关闭下拉菜单
         const dropdown = document.getElementById(`status-dropdown-${orderId}`);
         if (dropdown) {
