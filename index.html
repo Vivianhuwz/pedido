@@ -652,7 +652,7 @@
           </a>
           <a href="#" onclick="filterByStatus('processing')" id="nav-processing" class="mobile-nav-item flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg whitespace-nowrap">
             <i class="fa fa-spinner mr-2 text-blue-500"></i>
-            <span>Em separação</span>
+            <span>Processando</span>
             <span class="ml-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full" id="count-processing">0</span>
           </a>
           <a href="#" onclick="filterByStatus('completed')" id="nav-completed" class="mobile-nav-item flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg whitespace-nowrap">
@@ -684,7 +684,7 @@
         </a>
         <a href="#" onclick="filterByStatus('processing'); closeMobileMenu()" id="nav-processing-mobile" class="mobile-nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg">
           <i class="fa fa-spinner mr-3 text-blue-500"></i>
-          <span>Em separação</span>
+          <span>Processando</span>
           <span class="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full" id="count-processing-mobile">0</span>
         </a>
         <a href="#" onclick="filterByStatus('completed'); closeMobileMenu()" id="nav-completed-mobile" class="mobile-nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg">
@@ -1136,7 +1136,7 @@
             case 'pending':
               return ['aguardando', 'pendente'].includes(status);
             case 'processing':
-              return ['em separação', 'em andamento'].includes(status);
+              return ['processando', 'em andamento'].includes(status);
             case 'completed':
               return ['concluído', 'finalizado'].includes(status);
             case 'cancelled':
@@ -1876,7 +1876,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
     // 状态映射
     const statusMap = {
       'Aguardando': { class: 'bg-orange-100 text-orange-800', icon: 'fa-clock-o' },
-      'Em separação': { class: 'bg-blue-100 text-blue-800', icon: 'fa-spinner' },
+      'Processando': { class: 'bg-blue-100 text-blue-800', icon: 'fa-spinner' },
       'Concluído': { class: 'bg-green-100 text-green-800', icon: 'fa-check-circle' },
       'Cancelado': { class: 'bg-red-100 text-red-800', icon: 'fa-times-circle' }
     };
@@ -1930,7 +1930,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         const counts = {
             all: orders.length,
             pending: orders.filter(o => ['aguardando', 'pendente'].includes(o.status.toLowerCase())).length,
-            processing: orders.filter(o => ['em separação', 'em andamento'].includes(o.status.toLowerCase())).length,
+            processing: orders.filter(o => ['processando', 'em andamento'].includes(o.status.toLowerCase())).length,
             completed: orders.filter(o => ['concluído', 'finalizado'].includes(o.status.toLowerCase())).length,
             cancelled: orders.filter(o => o.status.toLowerCase() === 'cancelado').length
         };
@@ -2030,7 +2030,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                         <div id="status-dropdown-${order.id}" class="hidden absolute z-10 mt-1 bg-white rounded-md shadow-lg py-1 text-sm">
                             <div class="px-2 py-1 text-xs text-gray-500 font-medium">Alterar status:</div>
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Aguardando')">Aguardando</div>
-                            <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Em separação')">Em separação</div>
+                            <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Processando')">Processando</div>
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Concluído')">Concluído</div>
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Cancelado')">Cancelado</div>
                         </div>
@@ -3277,7 +3277,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
         const status = order.status.toLowerCase();
         if (status.includes('aguardando') || status.includes('pendente')) {
           statusClass = 'status-aguardando';
-        } else if (status.includes('em separação') || status.includes('em andamento')) {
+        } else if (status.includes('processando') || status.includes('em andamento')) {
           statusClass = 'status-em-separacao';
         } else if (status.includes('concluído') || status.includes('finalizado')) {
           statusClass = 'status-concluido';
@@ -3891,7 +3891,7 @@ ${parsedData && Array.isArray(parsedData) ? parsedData.slice(0, 3).map((order, i
                   </label>
                   <select id="batchStatus" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
                     <option value="Aguardando">Aguardando</option>
-                    <option value="Em separação">Em separação</option>
+                    <option value="Processando">Processando</option>
                     <option value="Concluído">Concluído</option>
                     <option value="Cancelado">Cancelado</option>
                   </select>
