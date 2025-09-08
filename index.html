@@ -442,10 +442,10 @@
     }
     
     .mobile-nav-item.active {
-      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
-      color: white !important;
+      background: white !important;
+      color: #374151 !important;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
     .mobile-nav-item:hover:not(.active) {
@@ -652,7 +652,7 @@
           </a>
           <a href="#" onclick="filterByStatus('processing')" id="nav-processing" class="mobile-nav-item flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg whitespace-nowrap">
             <i class="fa fa-spinner mr-2 text-blue-500"></i>
-            <span>Processando</span>
+            <span>Em separação</span>
             <span class="ml-2 bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full" id="count-processing">0</span>
           </a>
           <a href="#" onclick="filterByStatus('completed')" id="nav-completed" class="mobile-nav-item flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg whitespace-nowrap">
@@ -684,7 +684,7 @@
         </a>
         <a href="#" onclick="filterByStatus('processing'); closeMobileMenu()" id="nav-processing-mobile" class="mobile-nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg">
           <i class="fa fa-spinner mr-3 text-blue-500"></i>
-          <span>Processando</span>
+          <span>Em separação</span>
           <span class="ml-auto bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full" id="count-processing-mobile">0</span>
         </a>
         <a href="#" onclick="filterByStatus('completed'); closeMobileMenu()" id="nav-completed-mobile" class="mobile-nav-item flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-lg">
@@ -838,6 +838,9 @@
               <button onclick="printOrderList()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
                 <i class="fa fa-print mr-1 sm:mr-2"></i><span class="hidden sm:inline">Imprimir</span><span class="sm:hidden">Imprimir</span>
               </button>
+              <button onclick="toggleColumnVisibilityModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-50 transition-colors text-sm">
+                <i class="fa fa-eye mr-1 sm:mr-2"></i><span class="hidden sm:inline">Colunas</span><span class="sm:hidden">Colunas</span>
+              </button>
               <button onclick="showAddOrderModal()" class="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm">
                 <i class="fa fa-plus mr-1 sm:mr-2"></i><span class="hidden sm:inline">Pedido</span><span class="sm:hidden">Novo</span>
               </button>
@@ -893,9 +896,9 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Valor Final</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">TIPO</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="finalValue">Valor Final</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="orderType">TIPO</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="representative">
                   <div class="flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" onclick="toggleColumnFilter('representative')">
                     <span>Representante</span>
                     <svg class="w-4 h-4 text-gray-400 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -910,7 +913,7 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative">
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="status">
                   <div class="flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors" onclick="toggleColumnFilter('status')">
                     <span>Status</span>
                     <svg class="w-4 h-4 text-gray-400 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -925,9 +928,10 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">CX</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Operador</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Ações</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="tabPreco">Tab. Preço</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="cx">CX</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="operator">Operador</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="actions">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100" id="orderTableBody">
@@ -1128,7 +1132,7 @@
             case 'pending':
               return ['aguardando', 'pendente'].includes(status);
             case 'processing':
-              return ['processando', 'em andamento'].includes(status);
+              return ['em separação', 'em andamento'].includes(status);
             case 'completed':
               return ['concluído', 'finalizado'].includes(status);
             case 'cancelled':
@@ -1768,7 +1772,7 @@
     // 状态映射
     const statusMap = {
       'Aguardando': { class: 'bg-orange-100 text-orange-800', icon: 'fa-clock-o' },
-      'Processando': { class: 'bg-blue-100 text-blue-800', icon: 'fa-spinner' },
+      'Em separação': { class: 'bg-blue-100 text-blue-800', icon: 'fa-spinner' },
       'Concluído': { class: 'bg-green-100 text-green-800', icon: 'fa-check-circle' },
       'Cancelado': { class: 'bg-red-100 text-red-800', icon: 'fa-times-circle' }
     };
@@ -1822,7 +1826,7 @@
         const counts = {
             all: orders.length,
             pending: orders.filter(o => ['aguardando', 'pendente'].includes(o.status.toLowerCase())).length,
-            processing: orders.filter(o => ['processando', 'em andamento'].includes(o.status.toLowerCase())).length,
+            processing: orders.filter(o => ['em separação', 'em andamento'].includes(o.status.toLowerCase())).length,
             completed: orders.filter(o => ['concluído', 'finalizado'].includes(o.status.toLowerCase())).length,
             cancelled: orders.filter(o => o.status.toLowerCase() === 'cancelado').length
         };
@@ -1854,7 +1858,7 @@
         if (filteredOrders.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="13" class="px-6 py-8 text-center text-gray-400">
+                    <td colspan="14" class="px-6 py-8 text-center text-gray-400">
                         <i class="fa fa-search text-4xl mb-4 block"></i>
                         <p class="text-lg font-medium mb-2">Nenhum pedido encontrado</p>
                         <p class="text-sm">Tente ajustar os filtros de pesquisa</p>
@@ -1911,10 +1915,10 @@
                         <div class="text-sm font-medium text-gray-500">${formatCompanyNameSimple(order.company)}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="issueDate" data-order-id="${order.id}" ondblclick="editCell(this)">${formatDate(order.issueDate)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)">${formatCurrency(order.finalValue)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="orderTypeDescription" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.orderTypeDescription)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="representative" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.representative)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 editable-cell" data-field="finalValue" data-column="finalValue" data-order-id="${order.id}" ondblclick="editCell(this)">${formatCurrency(order.finalValue)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="orderTypeDescription" data-column="orderType" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.orderTypeDescription)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="representative" data-column="representative" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.representative)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap" data-column="status">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.class} cursor-pointer hover:opacity-80" onclick="toggleStatusDropdown(${order.id}, event)">
                             <i class="fa ${statusInfo.icon} mr-1"></i>
                             ${formatValue(order.status)}
@@ -1922,14 +1926,15 @@
                         <div id="status-dropdown-${order.id}" class="hidden absolute z-10 mt-1 bg-white rounded-md shadow-lg py-1 text-sm">
                             <div class="px-2 py-1 text-xs text-gray-500 font-medium">Alterar status:</div>
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Aguardando')">Aguardando</div>
-                            <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Processando')">Processando</div>
+                            <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Em separação')">Em separação</div>
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Concluído')">Concluído</div>
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Cancelado')">Cancelado</div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.cx)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.operator)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="tabPreco" data-column="tabPreco" data-order-id="${order.id}" ondblclick="editCell(this)">${order.tabPreco ? (order.tabPreco.includes('-') ? order.tabPreco.split('-').slice(1).join('-') : order.tabPreco) : ''}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-column="cx" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.cx)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-column="operator" data-order-id="${order.id}" ondblclick="editCell(this)">${formatValue(order.operator)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" data-column="actions">
                         <div class="flex space-x-2">
                             <button onclick="editOrder(${order.id})" class="text-primary hover:text-primary/80 transition-colors">
                                 <i class="fa fa-edit"></i>
@@ -1942,6 +1947,9 @@
                 </tr>
             `;
         }).join('');
+        
+        // 应用列隐藏状态到新渲染的行
+        updateColumnVisibility();
     }
     
     // 更新过滤后的统计信息
@@ -2183,6 +2191,7 @@
             document.getElementById('editCompany').value = order.company || '';
             document.getElementById('editIssueDate').value = order.issueDate || '';
             document.getElementById('editFinalValue').value = order.finalValue || '';
+            document.getElementById('editTabPreco').value = order.tabPreco || '';
             document.getElementById('editOrderTypeDescription').value = order.orderTypeDescription || '';
             document.getElementById('editRepresentative').value = order.representative || '';
             document.getElementById('editStatus').value = order.status || 'Pendente';
@@ -2458,6 +2467,7 @@
                     company: document.getElementById('editCompany').value,
                     issueDate: document.getElementById('editIssueDate').value,
                     finalValue: parseFloat(document.getElementById('editFinalValue').value),
+                    tabPreco: document.getElementById('editTabPreco').value || '',
                     orderTypeDescription: document.getElementById('editOrderTypeDescription').value,
                     representative: document.getElementById('editRepresentative').value,
                     status: document.getElementById('editStatus').value,
@@ -2501,6 +2511,94 @@
       e.returnValue = '';
     }
   });
+
+  // 列隐藏功能
+  let columnVisibility = {
+    tabPreco: true,
+    cx: true,
+    operator: true,
+    representative: true,
+    orderType: true,
+    finalValue: true,
+    status: true
+  };
+
+  // 打开列隐藏模态框
+  function toggleColumnVisibilityModal() {
+    document.getElementById('columnVisibilityModal').classList.remove('hidden');
+    // 更新开关状态
+    Object.keys(columnVisibility).forEach(column => {
+      const toggle = document.getElementById(`toggle-${column}`);
+      if (toggle) {
+        toggle.checked = columnVisibility[column];
+      }
+    });
+  }
+
+  // 关闭列隐藏模态框
+  function closeColumnVisibilityModal() {
+    document.getElementById('columnVisibilityModal').classList.add('hidden');
+  }
+
+  // 切换列显示/隐藏
+  function toggleColumn(columnName) {
+    columnVisibility[columnName] = !columnVisibility[columnName];
+    updateColumnVisibility();
+  }
+
+  // 更新列显示状态
+  function updateColumnVisibility() {
+    Object.keys(columnVisibility).forEach(column => {
+      const isVisible = columnVisibility[column];
+      
+      // 隐藏/显示表头
+      const headerCell = document.querySelector(`th[data-column="${column}"]`);
+      if (headerCell) {
+        headerCell.style.display = isVisible ? '' : 'none';
+      }
+      
+      // 隐藏/显示数据行中的对应列
+      const columnIndex = getColumnIndex(column);
+      if (columnIndex !== -1) {
+        const rows = document.querySelectorAll('#orderTableBody tr');
+        rows.forEach(row => {
+          const cell = row.children[columnIndex];
+          if (cell) {
+            cell.style.display = isVisible ? '' : 'none';
+          }
+        });
+      }
+    });
+  }
+
+  // 获取列索引
+  function getColumnIndex(columnName) {
+    const headers = document.querySelectorAll('thead th');
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].getAttribute('data-column') === columnName) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  // 重置列显示状态
+  function resetColumnVisibility() {
+    Object.keys(columnVisibility).forEach(column => {
+      columnVisibility[column] = true;
+      const toggle = document.getElementById(`toggle-${column}`);
+      if (toggle) {
+        toggle.checked = true;
+      }
+    });
+    updateColumnVisibility();
+  }
+
+  // 页面加载时初始化列显示状态
+  document.addEventListener('DOMContentLoaded', function() {
+    updateColumnVisibility();
+  });
+
   </script>
 
   <!-- 添加订单模态框 -->
@@ -2536,6 +2634,11 @@
             <div>
               <label for="finalValue" class="block text-sm font-medium text-gray-700 mb-1">Valor Final</label>
               <input type="number" id="finalValue" name="finalValue" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label for="tabPreco" class="block text-sm font-medium text-gray-700 mb-1">Tab. Preço</label>
+              <input type="text" id="tabPreco" name="tabPreco" placeholder="Ex: 001-IMPORTADORA" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             
             <div>
@@ -2618,6 +2721,11 @@
             <div>
               <label for="editFinalValue" class="block text-sm font-medium text-gray-700 mb-1">Valor Final</label>
               <input type="number" id="editFinalValue" name="editFinalValue" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label for="editTabPreco" class="block text-sm font-medium text-gray-700 mb-1">Tab. Preço</label>
+              <input type="text" id="editTabPreco" name="editTabPreco" placeholder="Ex: 001-IMPORTADORA" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             
             <div>
@@ -2731,6 +2839,7 @@
             company: document.getElementById('company').value,
             issueDate: document.getElementById('issueDate').value,
             finalValue: parseFloat(document.getElementById('finalValue').value),
+            tabPreco: document.getElementById('tabPreco').value || '',
             orderTypeDescription: document.getElementById('orderTypeDescription').value,
             representative: document.getElementById('representative').value,
             status: document.getElementById('status').value,
@@ -2872,6 +2981,16 @@
                         if (item['Cliente']) item.company = item['Cliente'];
                         if (item['Desc Tipo Pedido']) item.orderTypeDescription = item['Desc Tipo Pedido'];
                         if (item['Representante']) item.representative = item['Representante'];
+                        // 处理Tab. Preço字段的多种表头格式
+                        const tabPrecoKeys = Object.keys(item).filter(key => {
+                            const normalizedKey = key.toLowerCase().replace(/[\s\.]/g, '');
+                            return normalizedKey === 'tabpreco' || normalizedKey === 'tabpreço';
+                        });
+                        if (tabPrecoKeys.length > 0) {
+                            item.tabPreco = item[tabPrecoKeys[0]] || '';
+                        } else if (item['Tab. Preço'] || item['Tab Preço'] || item['TabPreco']) {
+                            item.tabPreco = item['Tab. Preço'] || item['Tab Preço'] || item['TabPreco'] || '';
+                        }
                         if (item['CX']) item.cx = item['CX'];
                         if (item['Operador']) item.operator = item['Operador'];
                         
@@ -2970,7 +3089,7 @@
             tr:nth-child(even) { background-color: #F9FAFB; }
             .print-info { text-align: right; font-size: 12px; color: #86909C; margin-bottom: 20px; }
             .status-aguardando { color: #FF7D00; }
-            .status-processando { color: #165DFF; }
+            .status-em-separacao { color: #165DFF; }
             .status-concluido { color: #00B42A; }
             .status-cancelado { color: #F53F3F; }
             .nf-column { color: #16a34a; font-weight: bold; }
@@ -2991,6 +3110,7 @@
                 <th>TIPO</th>
                 <th>Representante</th>
                 <th>Status</th>
+                <th>Tab. Preço</th>
                 <th>CX</th>
               </tr>
             </thead>
@@ -3004,8 +3124,8 @@
         const status = order.status.toLowerCase();
         if (status.includes('aguardando') || status.includes('pendente')) {
           statusClass = 'status-aguardando';
-        } else if (status.includes('processando') || status.includes('em andamento')) {
-          statusClass = 'status-processando';
+        } else if (status.includes('em separação') || status.includes('em andamento')) {
+          statusClass = 'status-em-separacao';
         } else if (status.includes('concluído') || status.includes('finalizado')) {
           statusClass = 'status-concluido';
         } else if (status.includes('cancelado')) {
@@ -3051,6 +3171,7 @@
             <td>${formatValue(order.orderTypeDescription)}</td>
             <td>${formatValue(order.representative)}</td>
             <td class="${statusClass}">${formatValue(order.status)}</td>
+            <td>${order.tabPreco ? (order.tabPreco.includes('-') ? order.tabPreco.split('-').slice(1).join('-') : order.tabPreco) : ''}</td>
             <td>${formatValue(order.cx)}</td>
           </tr>
         `;
@@ -3270,6 +3391,7 @@
                     name: customerName,
                     totalOrders: 0,
                     totalValue: 0,
+                    tabPreco: order.tabPreco || '',
                     orders: []
                 };
             }
@@ -3277,6 +3399,11 @@
             customerData[customerName].totalOrders++;
             customerData[customerName].totalValue += parseFloat(order.finalValue) || 0;
             customerData[customerName].orders.push(order);
+            
+            // 更新Tab. Preço信息（使用最新的订单信息）
+            if (order.tabPreco) {
+                customerData[customerName].tabPreco = order.tabPreco;
+            }
         });
         
         return customerData;
@@ -3316,6 +3443,7 @@
             sortedCustomers.forEach(customer => {
                 const isSelected = selectedCustomer === customer.name;
                 const displayName = formatCustomerName(customer.name);
+                const tabPrecoDisplay = customer.tabPreco ? (customer.tabPreco.includes('-') ? customer.tabPreco.split('-').slice(1).join('-') : customer.tabPreco) : '';
                 html += `
                     <div class="customer-item p-2 rounded-lg border transition-all duration-200 cursor-pointer ${
                         isSelected ? 'bg-white border-blue-300 shadow-md' : 'bg-white border-gray-200 hover:border-blue-200 hover:shadow-sm'
@@ -3325,6 +3453,7 @@
                                 <h4 class="font-semibold text-gray-800 text-sm leading-tight" title="${customer.name}">
                                     ${displayName}
                                 </h4>
+                                ${tabPrecoDisplay ? `<div class="text-xs text-gray-600 mt-1">Tab. Preço: ${tabPrecoDisplay}</div>` : ''}
                             </div>
                             <div class="flex justify-center items-center space-x-3">
                                 <div class="bg-white">
@@ -3527,7 +3656,7 @@
                   </label>
                   <select id="batchStatus" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
                     <option value="Aguardando">Aguardando</option>
-                    <option value="Processando">Processando</option>
+                    <option value="Em separação">Em separação</option>
                     <option value="Concluído">Concluído</option>
                     <option value="Cancelado">Cancelado</option>
                   </select>
@@ -3578,6 +3707,91 @@
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 列隐藏控制模态框 -->
+  <div id="columnVisibilityModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">控制列显示</h2>
+            <button onclick="closeColumnVisibilityModal()" class="text-gray-500 hover:text-gray-700">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">Tab. Preço</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-tabPreco" class="sr-only peer" checked onchange="toggleColumn('tabPreco')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">CX</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-cx" class="sr-only peer" checked onchange="toggleColumn('cx')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">Operador</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-operator" class="sr-only peer" checked onchange="toggleColumn('operator')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">Representante</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-representative" class="sr-only peer" checked onchange="toggleColumn('representative')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">TIPO</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-orderType" class="sr-only peer" checked onchange="toggleColumn('orderType')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">Valor Final</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-finalValue" class="sr-only peer" checked onchange="toggleColumn('finalValue')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span class="text-sm font-medium text-gray-700">Status</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggle-status" class="sr-only peer" checked onchange="toggleColumn('status')">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+          
+          <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="resetColumnVisibility()" class="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors">
+              重置
+            </button>
+            <button type="button" onclick="closeColumnVisibilityModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              确定
+            </button>
+          </div>
         </div>
       </div>
     </div>

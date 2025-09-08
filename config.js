@@ -15,6 +15,7 @@ window.DB_CONFIG = {
     company: 'company',
     issue_date: 'issue_date',
     final_value: 'final_value',
+    tab_preco: 'tab_preco',
     order_type_description: 'order_type_description',
     representative: 'representative',
     status: 'status',

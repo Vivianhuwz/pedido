@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.order_records (
     company VARCHAR(500) NOT NULL,
     issue_date DATE NOT NULL,
     final_value DECIMAL(15,2) NOT NULL DEFAULT 0,
+    tab_preco VARCHAR(50) DEFAULT '',
     order_type_description VARCHAR(255),
     representative VARCHAR(255),
     status VARCHAR(50) NOT NULL DEFAULT 'Aguardando',
@@ -77,7 +78,8 @@ INSERT INTO public.order_records (
     pedido,
     company, 
     issue_date, 
-    final_value, 
+    final_value,
+    tab_preco, 
     order_type_description,
     representative,
     status, 
@@ -92,6 +94,7 @@ SELECT * FROM (
         '12345 - Empresa ABC Ltda',
         CURRENT_DATE,
         15000.00,
+        '001-IMPORTADORA',
         'Venda Normal',
         'João Silva',
         'Aguardando',
@@ -100,17 +103,17 @@ SELECT * FROM (
     ),
     (
         'NF002',
-        '000000057414',
         '67890 - Tech Solutions',
         CURRENT_DATE - INTERVAL '1 day',
         25000.00,
+        '002-ATACADO',
         'Venda Especial',
         'Ana Costa',
-        'Processando',
+        'Em separação',
         'CX002',
         'Pedro Lima'
     )
-) AS new_data(nf, pedido, company, issue_date, final_value, order_type_description, representative, status, cx, operator)
+) AS new_data(nf, pedido, company, issue_date, final_value, tab_preco, order_type_description, representative, status, cx, operator)
 WHERE NOT EXISTS (SELECT 1 FROM public.order_records LIMIT 1);
 
 -- 验证数据插入
