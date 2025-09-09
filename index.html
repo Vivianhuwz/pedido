@@ -1190,6 +1190,7 @@
       
       updateFilteredStatistics();
       updateSidebarCounts();
+      updateCustomerStatistics();
     }
     
     // 更新筛选箭头显示
@@ -1860,11 +1861,11 @@
     // 更新侧边栏计数
     function updateSidebarCounts() {
         const counts = {
-            all: orders.length,
-            pending: orders.filter(o => ['aguardando', 'pendente'].includes(o.status.toLowerCase())).length,
-            processing: orders.filter(o => ['processando', 'em andamento'].includes(o.status.toLowerCase())).length,
-            completed: orders.filter(o => ['concluído', 'finalizado'].includes(o.status.toLowerCase())).length,
-            cancelled: orders.filter(o => o.status.toLowerCase() === 'cancelado').length
+            all: filteredOrders.length,
+            pending: filteredOrders.filter(o => ['aguardando', 'pendente'].includes(o.status.toLowerCase())).length,
+            processing: filteredOrders.filter(o => ['processando', 'em andamento'].includes(o.status.toLowerCase())).length,
+            completed: filteredOrders.filter(o => ['concluído', 'finalizado'].includes(o.status.toLowerCase())).length,
+            cancelled: filteredOrders.filter(o => o.status.toLowerCase() === 'cancelado').length
         };
         
         Object.keys(counts).forEach(status => {
