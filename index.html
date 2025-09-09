@@ -3455,12 +3455,33 @@
                     name: customerName,
                     totalOrders: 0,
                     totalValue: 0,
+                    tabPrecoSet: new Set(),
+                    totalAcerto: 0,
+                    validAcertoCount: 0,
                     orders: []
                 };
             }
             
             customerData[customerName].totalOrders++;
             customerData[customerName].totalValue += parseFloat(order.finalValue) || 0;
+            
+            // 收集Tab. Preço文字内容（去重）
+            if (order.tabPreco && order.tabPreco !== null && order.tabPreco !== '') {
+                const formattedTabPreco = formatTabPreco(order.tabPreco);
+                if (formattedTabPreco) {
+                    customerData[customerName].tabPrecoSet.add(formattedTabPreco);
+                }
+            }
+            
+            // 计算% Acerto汇总
+            if (order.acerto && order.acerto !== null && order.acerto !== '') {
+                const acertoValue = parseFloat(order.acerto);
+                if (!isNaN(acertoValue)) {
+                    customerData[customerName].totalAcerto += acertoValue;
+                    customerData[customerName].validAcertoCount++;
+                }
+            }
+            
             customerData[customerName].orders.push(order);
         });
         
@@ -3501,6 +3522,10 @@
             sortedCustomers.forEach(customer => {
                 const isSelected = selectedCustomer === customer.name;
                 const displayName = formatCustomerName(customer.name);
+                // 处理Tab. Preço文字内容和% Acerto平均值
+                const tabPrecoText = customer.tabPrecoSet.size > 0 ? Array.from(customer.tabPrecoSet).join(', ') : '-';
+                const avgAcerto = customer.validAcertoCount > 0 ? (customer.totalAcerto / customer.validAcertoCount) : 0;
+                
                 html += `
                     <div class="customer-item p-2 rounded-lg border transition-all duration-200 cursor-pointer ${
                         isSelected ? 'bg-white border-blue-300 shadow-md' : 'bg-white border-gray-200 hover:border-blue-200 hover:shadow-sm'
@@ -3510,6 +3535,12 @@
                                 <h4 class="font-semibold text-gray-800 text-sm leading-tight" title="${customer.name}">
                                     ${displayName}
                                 </h4>
+                                <div class="mt-1 text-xs text-gray-600">
+                                      <div class="flex justify-center items-center space-x-2">
+                                          ${tabPrecoText && tabPrecoText !== '-' ? `<span class="font-medium" title="${tabPrecoText}">${tabPrecoText}</span>` : ''}
+                                          ${formatAcerto(avgAcerto) ? `<span class="font-medium ml-2">${formatAcerto(avgAcerto)}</span>` : ''}
+                                      </div>
+                                  </div>
                             </div>
                             <div class="flex justify-center items-center space-x-3">
                                 <div class="bg-white">
