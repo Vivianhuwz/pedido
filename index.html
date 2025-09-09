@@ -854,7 +854,11 @@
                   <input type="checkbox" id="selectAllOrders" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" onchange="toggleAllOrders(this.checked)">
                 </th>
                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase" data-column="numero">Nº</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="nf">NF</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="nf">
+                  <div class="flex items-center cursor-pointer hover:bg-gray-100 transition-colors px-2 py-1 rounded" onclick="sortByColumn('nf')" data-sort-column="nf">
+                    <span>NF</span>
+                  </div>
+                </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="pedido">Pedido</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="cliente">
                   <div class="flex items-center justify-between">
@@ -1240,6 +1244,16 @@
            // 客户名称排序 - 字符串排序
            valueA = (a.company || '').toLowerCase();
            valueB = (b.company || '').toLowerCase();
+           
+           if (sortState.direction === 'asc') {
+             return valueA.localeCompare(valueB);
+           } else {
+             return valueB.localeCompare(valueA);
+           }
+         } else if (sortState.column === 'nf') {
+           // NF排序 - 字符串排序
+           valueA = (a.nf || '').toLowerCase();
+           valueB = (b.nf || '').toLowerCase();
            
            if (sortState.direction === 'asc') {
              return valueA.localeCompare(valueB);
