@@ -905,10 +905,10 @@
                     </div>
                   </div>
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="tabpreco">Tab. Preço</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="acerto">% Acerto</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="cx">CX</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="operador">Operador</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase hidden md:table-cell" data-column="tabpreco">Tab. Preço</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase hidden md:table-cell" data-column="acerto">% Acerto</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase hidden md:table-cell" data-column="cx">CX</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase hidden md:table-cell" data-column="operador">Operador</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="acoes">Ações</th>
               </tr>
             </thead>
@@ -1946,10 +1946,10 @@
                             <div class="status-option hover:bg-gray-100 px-3 py-1.5 cursor-pointer" onclick="updateOrderStatus(${order.id}, 'Cancelado')">Cancelado</div>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="tabPreco" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="tabpreco">${formatTabPreco(order.tabPreco)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="acerto" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="acerto">${formatAcerto(order.acerto)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="cx" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="cx">${formatValue(order.cx)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell" data-field="operator" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="operador">${formatValue(order.operator)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell hidden md:table-cell" data-field="tabPreco" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="tabpreco">${formatTabPreco(order.tabPreco)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell hidden md:table-cell" data-field="acerto" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="acerto">${formatAcerto(order.acerto)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell hidden md:table-cell" data-field="cx" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="cx">${formatValue(order.cx)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 editable-cell hidden md:table-cell" data-field="operator" data-order-id="${order.id}" ondblclick="editCell(this)" data-column="operador">${formatValue(order.operator)}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" data-column="acoes">
                         <div class="flex space-x-2">
                             <button onclick="editOrder(${order.id})" class="text-primary hover:text-primary/80 transition-colors">
