@@ -3496,6 +3496,7 @@
                     totalOrders: 0,
                     totalValue: 0,
                     tabPrecoSet: new Set(),
+                    representanteSet: new Set(),
                     totalAcerto: 0,
                     validAcertoCount: 0,
                     orders: []
@@ -3511,6 +3512,11 @@
                 if (formattedTabPreco) {
                     customerData[customerName].tabPrecoSet.add(formattedTabPreco);
                 }
+            }
+            
+            // 收集Representante文字内容（去重）
+            if (order.representative && order.representative !== null && order.representative !== '') {
+                customerData[customerName].representanteSet.add(order.representative);
             }
             
             // 计算% Acerto汇总
@@ -3564,6 +3570,7 @@
                 const displayName = formatCustomerName(customer.name);
                 // 处理Tab. Preço文字内容和% Acerto平均值
                 const tabPrecoText = customer.tabPrecoSet.size > 0 ? Array.from(customer.tabPrecoSet).join(', ') : '-';
+                const representanteText = customer.representanteSet.size > 0 ? Array.from(customer.representanteSet).join(', ') : '-';
                 const avgAcerto = customer.validAcertoCount > 0 ? (customer.totalAcerto / customer.validAcertoCount) : 0;
                 
                 html += `
@@ -3580,6 +3587,7 @@
                                           ${tabPrecoText && tabPrecoText !== '-' ? `<span class="font-medium" title="${tabPrecoText}">${tabPrecoText}</span>` : ''}
                                           ${formatAcerto(avgAcerto) ? `<span class="font-medium ml-2">${formatAcerto(avgAcerto)}</span>` : ''}
                                       </div>
+                                      ${representanteText && representanteText !== '-' ? `<div class="mt-1 text-center"><span class="font-medium text-green-600" title="${representanteText}">${representanteText}</span></div>` : ''}
                                   </div>
                             </div>
                             <div class="flex justify-center items-center space-x-3">
