@@ -429,8 +429,8 @@
     }
     
     .mobile-nav-item.active {
-      background: #3b82f6 !important;
-      color: white !important;
+      background: #ffffff !important;
+      color: #374151 !important;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
@@ -492,9 +492,7 @@
       transition: all 0.2s ease;
     }
     
-    #mobileSearchBtn:hover {
-      background-color: rgba(135, 206, 235, 0.2);
-    }
+
     
     #mobileSearchBtn.active {
       background-color: rgba(135, 206, 235, 0.3);
@@ -559,10 +557,7 @@
         backdrop-filter: blur(10px);
       }
       
-      #mobileMenuBtn:hover, #mobileSearchBtn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: scale(1.05);
-      }
+
       
       /* 汉堡菜单线条颜色 */
       .hamburger-line {
@@ -687,7 +682,7 @@
         <div class="md:hidden flex items-center justify-between w-full">
           <div class="flex items-center space-x-3">
             <!-- 汉堡菜单 -->
-            <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-gray-100" onclick="toggleMobileMenu()">
+            <button id="mobileMenuBtn" class="" style="border: none; outline: none; background: none;" onclick="toggleMobileMenu()">
               <div class="w-6 h-6 flex flex-col justify-center items-center">
                 <div class="hamburger-line w-5 h-0.5 bg-gray-600 mb-1"></div>
                 <div class="hamburger-line w-5 h-0.5 bg-gray-600 mb-1"></div>
@@ -700,8 +695,8 @@
           </div>
           
           <!-- 搜索按钮 -->
-          <button id="mobileSearchBtn" class="p-2 rounded-lg hover:bg-gray-100" onclick="toggleMobileSearch()">
-            <i class="fa fa-search text-gray-600"></i>
+          <button id="mobileSearchBtn" class="p-0" style="border: none; outline: none; background: none;" onclick="toggleMobileSearch()">
+            <i class="fa fa-search text-white"></i>
           </button>
         </div>
         
@@ -806,7 +801,7 @@
       <!-- 状态过滤菜单 -->
       <div class="px-6 py-4 space-y-1">
         <a href="#" onclick="filterByStatus('all'); closeMobileMenu()" id="nav-all-mobile" class="mobile-nav-item active flex items-center px-4 py-4 text-sm font-medium rounded-xl transition-all duration-300">
-          <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center mr-4">
             <i class="fa fa-list text-blue-600"></i>
           </div>
           <div class="flex-1">
@@ -2739,7 +2734,7 @@
         
         // Adicionar botão de sincronização manual
         const syncButton = document.createElement('button');
-        syncButton.className = 'p-2 text-gray-500 hover:text-primary transition-colors rounded-lg hover:bg-gray-100';
+        syncButton.className = 'p-2 text-gray-500 transition-colors rounded-lg';
         syncButton.innerHTML = '<i class="fa fa-refresh"></i>';
         syncButton.title = 'Sincronizar dados';
         syncButton.onclick = syncWithServer;
