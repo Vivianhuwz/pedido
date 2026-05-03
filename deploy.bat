@@ -39,7 +39,7 @@ goto invalid_choice
 :manual_deploy
 echo.
 echo [3/4] Criando arquivo ZIP para deploy manual...
-powershell -command "Compress-Archive -Path '*.html','*.toml','_redirects','README.md' -DestinationPath 'youbai-orders-deploy.zip' -Force"
+powershell -command "$items=@('index.html','netlify.toml','config.js','README.md','package.json','package-lock.json','netlify'); $items=$items | Where-Object { Test-Path $_ }; Compress-Archive -Path $items -DestinationPath 'youbai-orders-deploy.zip' -Force"
 echo ✓ Arquivo youbai-orders-deploy.zip criado
 echo.
 echo [4/4] Instrucoes para deploy manual:

@@ -1,16 +1,18 @@
 [build]
-  # 发布目录 - 当前目录
   publish = "."
-  
   command = "npm install"
+  functions = "netlify/functions"
 
 [build.environment]
   # Node.js版本（如果需要）
   NODE_VERSION = "18"
 
-# 重定向规则
 [[redirects]]
-  # SPA重定向 - 所有路由都指向index.html
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
@@ -62,4 +64,4 @@
 
 # 函数设置（如果需要后端功能）
 [functions]
-  directory = "functions"
+  directory = "netlify/functions"
