@@ -11,7 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <!-- 配置文件 -->
-  <script src="config.js?v=1.1"></script>
+  <script src="/config.js?v=1.1"></script>
   <script>
     window.CLOUD_CONFIG = window.CLOUD_CONFIG || { provider: localStorage.getItem('CLOUD_PROVIDER') || 'none' };
     window.SYNC_CONFIG = window.SYNC_CONFIG || { autoSync: true, syncInterval: 30000, retryAttempts: 3, retryDelay: 2000 };
@@ -1613,6 +1613,8 @@
             console.error('Neon连接失败:', error);
             isCloudInitialized = false;
             updateSyncStatus('Falha Neon', 'error');
+            const code = error && error.code ? ` (${error.code})` : '';
+            showNotification(`Neon 连接失败${code}: ${error && error.message ? error.message : error}`, 'error');
             return false;
           }
         }
@@ -1648,6 +1650,8 @@
         
       } catch (error) {
         console.error('同步到云端失败:', error);
+        const code = error && error.code ? ` (${error.code})` : '';
+        showNotification(`同步失败${code}: ${error && error.message ? error.message : error}`, 'error');
         updateSyncStatus('同步失败', 'error');
         return false;
       }
@@ -1700,6 +1704,8 @@
         
       } catch (error) {
         console.error('从云端加载数据失败:', error);
+        const code = error && error.code ? ` (${error.code})` : '';
+        showNotification(`从云端加载失败${code}: ${error && error.message ? error.message : error}`, 'error');
         updateSyncStatus('加载失败', 'error');
         return false;
       }
