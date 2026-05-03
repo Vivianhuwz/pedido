@@ -62,4 +62,4 @@
 
 # 函数设置（如果需要后端功能）
 [functions]
-  directory = "netlify/functions"
+  directory = "functions"
