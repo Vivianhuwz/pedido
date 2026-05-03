@@ -14,7 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <!-- 配置文件 -->
-  <script src="config.js"></script>
+  <script src="config.js?v=1.1"></script>
   
   <style>
     /* 客户侧边栏自定义样式 */
@@ -52,14 +52,6 @@
     
     .customer-item .bg-blue-50 {
       background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-    }
-    
-
-    /* 手机端隐藏统计卡片 */
-    @media (max-width: 640px) {
-      .grid.grid-cols-2.lg\:grid-cols-5 {
-        display: none;
-      }
     }
     
     /* 响应式设计 - 参考云收账系统优化 */
@@ -429,8 +421,8 @@
     }
     
     .mobile-nav-item.active {
-      background: #ffffff !important;
-      color: #374151 !important;
+      background: #3b82f6 !important;
+      color: white !important;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
@@ -492,7 +484,9 @@
       transition: all 0.2s ease;
     }
     
-
+    #mobileSearchBtn:hover {
+      background-color: rgba(135, 206, 235, 0.2);
+    }
     
     #mobileSearchBtn.active {
       background-color: rgba(135, 206, 235, 0.3);
@@ -529,145 +523,44 @@
       border-color: #1d4ed8;
     }
 
-    /* 移动端优化 - Sephora风格 */
+    /* 移动端优化 - 增强版 */
     @media (max-width: 768px) {
-      /* 隐藏桌面版导航 */
       .mobile-nav-scroll {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 0 4px;
+      }
+      
+      .mobile-nav-scroll::-webkit-scrollbar {
         display: none;
-      }
-      
-      /* 顶部导航栏优化 */
-      header {
-        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-      }
-      
-      /* YOUBAI标题样式 */
-      header h1 {
-        color: white !important;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-      }
-      
-      /* 搜索和菜单按钮 */
-      #mobileMenuBtn, #mobileSearchBtn {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        backdrop-filter: blur(10px);
-      }
-      
-
-      
-      /* 汉堡菜单线条颜色 */
-      .hamburger-line {
-        background-color: white !important;
-      }
-      
-      /* 移动端搜索框 */
-      #mobileSearchContainer {
-        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      
-      #mobileSearchInput {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        backdrop-filter: blur(10px);
-      }
-      
-      #mobileSearchInput::placeholder {
-        color: rgba(255, 255, 255, 0.6);
-      }
-      
-      /* 移动端导航菜单 */
-      #mobileNav {
-        background: white;
-        border-top: none;
-        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
       }
       
       /* 统计卡片移动端优化 */
       .stat-card {
         transition: all 0.3s ease;
-        border-radius: 20px;
-        border: none;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
         backdrop-filter: blur(10px);
       }
       
       .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: rgba(59, 130, 246, 0.2);
       }
       
       .stat-card:active {
-        transform: translateY(-2px);
+        transform: translateY(0);
         transition: all 0.1s ease;
       }
       
-      /* 主内容区域 */
-      main {
-        padding-bottom: 80px; /* 为底部导航留空间 */
+      .company-logo:hover {
+        transform: scale(1.05);
       }
       
-      /* 客户卡片优化 */
-       .customer-card {
-         border-radius: 16px;
-         box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-         border: none;
-         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-       }
-       
-       .customer-card:hover {
-         transform: translateY(-2px);
-         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-       }
-       
-       /* 订单表格移动端优化 */
-       .order-table {
-         border-radius: 16px;
-         overflow: hidden;
-         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-       }
-       
-       /* 移动端表格行优化 */
-       .order-row {
-         transition: all 0.3s ease;
-         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-       }
-       
-       .order-row:hover {
-         background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-         transform: translateX(4px);
-       }
-       
-       /* 触摸优化 */
-       .touch-target {
-         min-height: 44px;
-         min-width: 44px;
-       }
-       
-       /* 滚动条优化 */
-       ::-webkit-scrollbar {
-         width: 4px;
-       }
-       
-       ::-webkit-scrollbar-track {
-         background: rgba(0, 0, 0, 0.05);
-         border-radius: 2px;
-       }
-       
-       ::-webkit-scrollbar-thumb {
-         background: rgba(0, 0, 0, 0.2);
-         border-radius: 2px;
-       }
-       
-       ::-webkit-scrollbar-thumb:hover {
-         background: rgba(0, 0, 0, 0.3);
-       }
+      .editable-cell:hover {
+        background-color: transparent;
+      }
     }
   </style>
 </head>
@@ -682,7 +575,7 @@
         <div class="md:hidden flex items-center justify-between w-full">
           <div class="flex items-center space-x-3">
             <!-- 汉堡菜单 -->
-            <button id="mobileMenuBtn" class="" style="border: none; outline: none; background: none;" onclick="toggleMobileMenu()">
+            <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-gray-100" onclick="toggleMobileMenu()">
               <div class="w-6 h-6 flex flex-col justify-center items-center">
                 <div class="hamburger-line w-5 h-0.5 bg-gray-600 mb-1"></div>
                 <div class="hamburger-line w-5 h-0.5 bg-gray-600 mb-1"></div>
@@ -695,15 +588,15 @@
           </div>
           
           <!-- 搜索按钮 -->
-          <button id="mobileSearchBtn" class="p-0" style="border: none; outline: none; background: none;" onclick="toggleMobileSearch()">
-            <i class="fa fa-search text-white"></i>
+          <button id="mobileSearchBtn" class="p-2 rounded-lg hover:bg-gray-100" onclick="toggleMobileSearch()">
+            <i class="fa fa-search text-gray-600"></i>
           </button>
         </div>
         
         <!-- 桌面版Logo和标题 -->
         <div class="hidden md:block">
-          <h1 class="text-lg font-semibold text-gray-700">YOUBAI</h1>
-          <p class="text-xs text-gray-500">Sistema de Gerenciamento de Pedidos</p>
+          <h1 class="text-lg font-semibold text-gray-500">YOUBAI</h1>
+          <p class="text-xs text-gray-300">Sistema de Gerenciamento de Pedidos</p>
         </div>
         
         <!-- 搜索框 - 桌面版 -->
@@ -773,35 +666,11 @@
       </div>
     </nav>
     
-    <!-- 移动端分类导航 - 独立显示 -->
-    <div class="md:hidden bg-white border-b border-gray-200 shadow-sm">
-      <div class="px-6 py-4">
-        <div class="flex space-x-8 overflow-x-auto scrollbar-hide">
-          <button class="category-nav-item active flex-shrink-0 text-xs font-semibold text-black border-b-2 border-black pb-3 tracking-wider" onclick="filterByStatus('all')">
-            TODOS
-          </button>
-          <button class="category-nav-item flex-shrink-0 text-xs font-semibold text-gray-400 pb-3 tracking-wider" onclick="filterByStatus('pending')">
-            AGUARDANDO
-          </button>
-          <button class="category-nav-item flex-shrink-0 text-xs font-semibold text-gray-400 pb-3 tracking-wider" onclick="filterByStatus('processing')">
-            PROCESSANDO
-          </button>
-          <button class="category-nav-item flex-shrink-0 text-xs font-semibold text-gray-400 pb-3 tracking-wider" onclick="filterByStatus('completed')">
-            CONCLUÍDO
-          </button>
-          <button class="category-nav-item flex-shrink-0 text-xs font-semibold text-gray-400 pb-3 tracking-wider" onclick="filterByStatus('cancelled')">
-            CANCELADO
-          </button>
-        </div>
-      </div>
-    </div>
-    
     <!-- 移动端导航菜单 -->
     <nav id="mobileNav" class="md:hidden hidden border-t border-gray-100 bg-white shadow-lg">
-      <!-- 状态过滤菜单 -->
       <div class="px-6 py-4 space-y-1">
         <a href="#" onclick="filterByStatus('all'); closeMobileMenu()" id="nav-all-mobile" class="mobile-nav-item active flex items-center px-4 py-4 text-sm font-medium rounded-xl transition-all duration-300">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center mr-4">
+          <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
             <i class="fa fa-list text-blue-600"></i>
           </div>
           <div class="flex-1">
@@ -839,7 +708,7 @@
     <div class="main-layout">
       <!-- 客户管理侧边栏 -->
       <div id="customerSidebar" class="w-80 bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300">
-        <div class="p-4 border-b border-gray-100">
+        <div class="p-4 border-b border-gray-100 bg-transparent">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-700">
               <i class="fa fa-users mr-2 text-blue-600"></i>
@@ -985,11 +854,7 @@
                   <input type="checkbox" id="selectAllOrders" class="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out" onchange="toggleAllOrders(this.checked)">
                 </th>
                 <th class="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase" data-column="numero">Nº</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="nf">
-                  <div class="flex items-center cursor-pointer hover:bg-gray-100 transition-colors px-2 py-1 rounded" onclick="sortByColumn('nf')" data-sort-column="nf">
-                    <span>NF</span>
-                  </div>
-                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="nf">NF</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase" data-column="pedido">Pedido</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase relative" data-column="cliente">
                   <div class="flex items-center justify-between">
@@ -1381,16 +1246,6 @@
            } else {
              return valueB.localeCompare(valueA);
            }
-         } else if (sortState.column === 'nf') {
-           // NF排序 - 字符串排序
-           valueA = (a.nf || '').toLowerCase();
-           valueB = (b.nf || '').toLowerCase();
-           
-           if (sortState.direction === 'asc') {
-             return valueA.localeCompare(valueB);
-           } else {
-             return valueB.localeCompare(valueA);
-           }
          } else {
            // 其他列的排序逻辑可以在这里添加
            return 0;
@@ -1444,39 +1299,6 @@
       
       mobileNav.classList.add('hidden');
       mobileMenuBtn.classList.remove('hamburger-open');
-    }
-    
-    // 分类导航状态更新功能
-    function updateCategoryNavigation(status) {
-      // 移除所有分类的active状态
-      document.querySelectorAll('.category-nav-item').forEach(item => {
-        item.classList.remove('active');
-        item.classList.remove('text-black');
-        item.classList.add('text-gray-400');
-        item.classList.remove('border-b-2', 'border-black');
-      });
-      
-      // 根据状态激活对应的分类按钮
-      const statusMap = {
-        'all': 'TODOS',
-        'pending': 'AGUARDANDO', 
-        'processing': 'PROCESSANDO',
-        'completed': 'CONCLUÍDO',
-        'cancelled': 'CANCELADO'
-      };
-      
-      const targetText = statusMap[status];
-      if (targetText) {
-        const targetButton = Array.from(document.querySelectorAll('.category-nav-item')).find(item => 
-          item.textContent.trim() === targetText
-        );
-        if (targetButton) {
-          targetButton.classList.add('active');
-          targetButton.classList.remove('text-gray-400');
-          targetButton.classList.add('text-black');
-          targetButton.classList.add('border-b-2', 'border-black');
-        }
-      }
     }
     
     // 移动端搜索功能
@@ -1694,42 +1516,126 @@
     // 过滤后的订单数组
     let filteredOrders = [];
     
-    // Supabase客户端
-    let supabase = null;
-    let isSupabaseInitialized = false;
+    let supabaseClient = null;
+    let isCloudInitialized = false;
+    let CLOUD_PROVIDER = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'supabase';
+    let autoSyncTimerId = null;
+
+    function getCloudSyncToken() {
+      return localStorage.getItem('CLOUD_SYNC_TOKEN') || '';
+    }
+
+    function getCloudHeaders() {
+      const token = getCloudSyncToken();
+      return token ? { 'x-sync-token': token } : {};
+    }
+
+    async function loadFromNeon() {
+      const response = await fetch('/.netlify/functions/pedido_load', {
+        method: 'GET',
+        headers: { ...getCloudHeaders() }
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const errorMessage = payload && payload.message ? payload.message : '请求失败';
+        const err = new Error(errorMessage);
+        err.code = payload && payload.error ? payload.error : 'REQUEST_FAILED';
+        throw err;
+      }
+      if (!payload || !payload.ok) {
+        const err = new Error('云端返回异常');
+        err.code = payload && payload.error ? payload.error : 'BAD_RESPONSE';
+        throw err;
+      }
+      return payload;
+    }
+
+    async function saveToNeon(ordersToSave) {
+      const response = await fetch('/.netlify/functions/pedido_save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCloudHeaders()
+        },
+        body: JSON.stringify({ data: ordersToSave })
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const errorMessage = payload && payload.message ? payload.message : '请求失败';
+        const err = new Error(errorMessage);
+        err.code = payload && payload.error ? payload.error : 'REQUEST_FAILED';
+        throw err;
+      }
+      if (!payload || !payload.ok) {
+        const err = new Error('云端返回异常');
+        err.code = payload && payload.error ? payload.error : 'BAD_RESPONSE';
+        throw err;
+      }
+      return payload;
+    }
     
     // 初始化Supabase
     async function initializeSupabase() {
       try {
+        CLOUD_PROVIDER = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'supabase';
+
+        if (CLOUD_PROVIDER === 'none') {
+          supabaseClient = null;
+          isCloudInitialized = false;
+          updateSyncStatus('Modo local', 'offline');
+          return false;
+        }
+
+        if (CLOUD_PROVIDER === 'neon') {
+          supabaseClient = null;
+          try {
+            await loadFromNeon();
+            isCloudInitialized = true;
+            updateSyncStatus('Neon conectado', 'success');
+            if (window.SYNC_CONFIG.autoSync) {
+              startAutoSync();
+            }
+            return true;
+          } catch (error) {
+            console.error('Neon连接失败:', error);
+            isCloudInitialized = false;
+            updateSyncStatus('Falha Neon', 'error');
+            return false;
+          }
+        }
+
         if (typeof window.SUPABASE_CONFIG === 'undefined') {
           console.warn('Supabase配置未找到，跳过云同步功能');
           return false;
         }
-        
-        supabase = window.supabase.createClient(
+
+        if (typeof window.supabase === 'undefined') {
+          console.warn('Supabase库未加载，跳过云同步功能');
+          return false;
+        }
+
+        supabaseClient = window.supabase.createClient(
           window.SUPABASE_CONFIG.url,
           window.SUPABASE_CONFIG.anonKey
         );
-        
-        // 测试连接
-        const { data, error } = await supabase
+
+        const { error } = await supabaseClient
           .from(window.DB_CONFIG.tableName)
           .select('count', { count: 'exact', head: true });
-        
+
         if (error) {
           console.error('Supabase连接测试失败:', error);
           return false;
         }
-        
-        isSupabaseInitialized = true;
+
+        isCloudInitialized = true;
         console.log('Supabase初始化成功');
-        updateSyncStatus('已连接到云端', 'success');
-        
-        // 启动自动同步
+        updateSyncStatus('Conectado', 'success');
+
         if (window.SYNC_CONFIG.autoSync) {
           startAutoSync();
         }
-        
+
         return true;
       } catch (error) {
         console.error('Supabase初始化失败:', error);
@@ -1740,16 +1646,23 @@
     
     // 同步数据到云端
     async function syncToCloud() {
-      if (!isSupabaseInitialized) {
-        console.warn('Supabase未初始化，无法同步到云端');
+      if (!isCloudInitialized) {
+        console.warn('云端未初始化，无法同步');
         return false;
       }
       
       updateSyncStatus('正在同步到云端...', 'syncing');
       
       try {
+        if (CLOUD_PROVIDER === 'neon') {
+          await saveToNeon(orders);
+          updateSyncStatus('Sincronizado', 'success');
+          localStorage.setItem('lastCloudSync', new Date().toISOString());
+          return true;
+        }
+
         // 首先获取云端所有数据的ID
-        const { data: cloudData, error: selectError } = await supabase
+        const { data: cloudData, error: selectError } = await supabaseClient
           .from(window.DB_CONFIG.tableName)
           .select('id');
         
@@ -1766,7 +1679,7 @@
         
         // 删除云端中不存在于本地的记录
         if (idsToDelete.length > 0) {
-          const { error: deleteError } = await supabase
+          const { error: deleteError } = await supabaseClient
             .from(window.DB_CONFIG.tableName)
             .delete()
             .in('id', idsToDelete);
@@ -1798,7 +1711,7 @@
           }));
           
           // 使用upsert来插入或更新数据
-          const { data, error } = await supabase
+          const { data, error } = await supabaseClient
             .from(window.DB_CONFIG.tableName)
             .upsert(dataToSync, { 
               onConflict: 'id',
@@ -1825,26 +1738,30 @@
     
     // 从云端加载数据
     async function loadFromCloud() {
-      if (!isSupabaseInitialized) {
-        console.warn('Supabase未初始化，无法从云端加载数据');
+      if (!isCloudInitialized) {
+        console.warn('云端未初始化，无法从云端加载数据');
         return false;
       }
       
       updateSyncStatus('正在从云端加载...', 'syncing');
       
       try {
-        const { data, error } = await supabase
-          .from(window.DB_CONFIG.tableName)
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data && data.length > 0) {
-          // 转换数据格式
-          const cloudOrders = data.map(item => ({
+        let cloudOrders = [];
+
+        if (CLOUD_PROVIDER === 'neon') {
+          const payload = await loadFromNeon();
+          cloudOrders = Array.isArray(payload.data) ? payload.data : [];
+        } else {
+          const { data, error } = await supabaseClient
+            .from(window.DB_CONFIG.tableName)
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) {
+            throw error;
+          }
+
+          cloudOrders = data && data.length > 0 ? data.map(item => ({
             id: item.id,
             nf: item.nf,
             pedido: item.pedido,
@@ -1860,7 +1777,10 @@
             operator: item.operator,
             createdAt: item.created_at,
             updatedAt: item.updated_at
-          }));
+          })) : [];
+        }
+
+        if (cloudOrders && cloudOrders.length > 0) {
           
           // 合并云端数据和本地数据
           const mergedOrders = mergeOrderData(orders, cloudOrders);
@@ -1910,8 +1830,11 @@
     // 启动自动同步
     function startAutoSync() {
       if (window.SYNC_CONFIG.autoSync && window.SYNC_CONFIG.syncInterval > 0) {
-        setInterval(async () => {
-          if (isSupabaseInitialized) {
+        if (autoSyncTimerId) {
+          clearInterval(autoSyncTimerId);
+        }
+        autoSyncTimerId = setInterval(async () => {
+          if (isCloudInitialized) {
             await syncToCloud();
           }
         }, window.SYNC_CONFIG.syncInterval);
@@ -1933,14 +1856,7 @@
     // 在DOM加载完成后初始化搜索
     document.addEventListener('DOMContentLoaded', function() {
       initializeSearch();
-      initializeCategoryNav();
     });
-    
-    // 初始化分类导航
-    function initializeCategoryNav() {
-      // 默认激活TODOS分类
-      updateCategoryNavigation('all');
-    }
 
     // 初始化搜索功能
     function initializeSearch() {
@@ -1975,9 +1891,6 @@
     function filterByStatus(status) {
         currentStatusFilter = status;
         
-        // 更新分类导航状态
-        updateCategoryNavigation(status);
-        
         // 更新桌面版导航栏样式 - 移除所有active类（桌面版导航在.hidden.md:block的nav中）
         document.querySelectorAll('nav.hidden.md\\:block .mobile-nav-item').forEach(item => {
             item.classList.remove('active');
@@ -2002,23 +1915,6 @@
         if (activeMobileNav) {
             activeMobileNav.classList.remove('text-gray-600');
             activeMobileNav.classList.add('active');
-        }
-        
-        // 更新底部导航栏活动状态
-        document.querySelectorAll('.bottom-nav-item').forEach(item => {
-            item.classList.remove('active');
-        });
-        
-        // 激活底部导航栏对应项
-        const activeBottomNav = document.querySelector(`.bottom-nav-item[data-status="${status}"]`);
-        if (activeBottomNav) {
-            activeBottomNav.classList.add('active');
-        } else if (status === 'all') {
-            // 如果是'all'状态，激活首页按钮
-            const homeButton = document.querySelector('.bottom-nav-item[data-status="all"]');
-            if (homeButton) {
-                homeButton.classList.add('active');
-            }
         }
         
         // 应用过滤器
@@ -2084,18 +1980,6 @@
             const mobileCountElement = document.getElementById(`count-${status}-mobile`);
             if (mobileCountElement) {
                 mobileCountElement.textContent = counts[status];
-            }
-            
-            // 更新底部导航栏徽章
-            const bottomBadgeElement = document.getElementById(`${status}-badge`);
-            if (bottomBadgeElement) {
-                bottomBadgeElement.textContent = counts[status];
-                // 如果计数为0，隐藏徽章
-                if (counts[status] === 0) {
-                    bottomBadgeElement.style.display = 'none';
-                } else {
-                    bottomBadgeElement.style.display = 'flex';
-                }
             }
         });
     }
@@ -2638,7 +2522,7 @@
         console.log('Dados salvos no armazenamento local');
         
         // Tentar sincronizar com a nuvem se o Supabase estiver inicializado
-        if (isSupabaseInitialized) {
+        if (isCloudInitialized) {
           await syncToCloud();
         } else {
           updateSyncStatus('Salvo localmente', 'success');
@@ -2649,47 +2533,70 @@
       }
     }
 
+    function openCloudSettings() {
+      const current = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'supabase';
+      const choice = prompt(
+        `选择云端模式 / Escolha o modo:\n1 = 本地/Local\n2 = Supabase\n3 = Neon\n\n当前/Atual: ${current}\n\n请输入/Digite 1/2/3:`,
+        current === 'neon' ? '3' : (current === 'supabase' ? '2' : '1')
+      );
+      if (!choice) return;
+      const normalized = String(choice).trim();
+
+      if (normalized === '1') {
+        if (typeof window.disableCloudSync === 'function') {
+          window.disableCloudSync();
+        } else {
+          localStorage.setItem('CLOUD_PROVIDER', 'none');
+          window.location.reload();
+        }
+        return;
+      }
+
+      if (normalized === '3') {
+        const currentToken = localStorage.getItem('CLOUD_SYNC_TOKEN') || '';
+        const token = prompt('Neon token / Neon 同步口令（建议填写）', currentToken);
+        if (typeof window.enableNeonSync === 'function') {
+          window.enableNeonSync(token || '');
+        } else {
+          if (token && token.trim()) localStorage.setItem('CLOUD_SYNC_TOKEN', token.trim());
+          localStorage.setItem('CLOUD_PROVIDER', 'neon');
+          window.location.reload();
+        }
+        return;
+      }
+
+      const currentUrl = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) || '';
+      const currentAnonKey = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.anonKey) || '';
+
+      const url = prompt('Supabase URL (ex: https://xxxx.supabase.co)', currentUrl);
+      if (!url || !url.trim()) return;
+
+      const anonKey = prompt('Supabase anon key (JWT)', currentAnonKey);
+      if (!anonKey || !anonKey.trim()) return;
+
+      if (typeof window.setSupabaseConfig === 'function') {
+        window.setSupabaseConfig(url.trim(), anonKey.trim());
+      } else {
+        localStorage.setItem('CLOUD_SUPABASE_URL', url.trim());
+        localStorage.setItem('CLOUD_SUPABASE_ANON_KEY', anonKey.trim());
+        localStorage.setItem('CLOUD_PROVIDER', 'supabase');
+        window.location.reload();
+      }
+    }
+
     // Sincronizar dados com o servidor
     async function syncWithServer() {
       updateSyncStatus('Sincronizando...', 'syncing');
-      
       try {
-        // Enviar dados locais para o servidor
-        const response = await fetch(`${API_BASE_URL}/orders/sync`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            orders: orders,
-            lastSync: localStorage.getItem('lastSync')
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          
-          // Atualizar dados locais
-          if (result.orders) {
-            orders = result.orders;
-            saveToLocalStorage();
-            applyFilters();
-            updateFilteredStatistics();
-          }
-          
-          localStorage.setItem('lastSync', new Date().toISOString());
+        const ok = await syncToCloud();
+        if (ok) {
           updateSyncStatus('Sincronizado', 'success');
         } else {
-          throw new Error('Resposta do servidor com erro');
+          updateSyncStatus('Falha na sincronização', 'error');
         }
       } catch (error) {
         console.error('Falha na sincronização:', error);
         updateSyncStatus('Falha na sincronização', 'error');
-        
-        // Se for um erro de rede, mostrar modo offline
-        if (error.name === 'TypeError') {
-          updateSyncStatus('Modo offline', 'offline');
-        }
       }
     }
 
@@ -2734,10 +2641,16 @@
         
         // Adicionar botão de sincronização manual
         const syncButton = document.createElement('button');
-        syncButton.className = 'p-2 text-gray-500 transition-colors rounded-lg';
+        syncButton.className = 'p-2 text-gray-500 hover:text-primary transition-colors rounded-lg hover:bg-gray-100';
         syncButton.innerHTML = '<i class="fa fa-refresh"></i>';
         syncButton.title = 'Sincronizar dados';
         syncButton.onclick = syncWithServer;
+
+        const cloudSettingsButton = document.createElement('button');
+        cloudSettingsButton.className = 'p-2 text-gray-500 hover:text-primary transition-colors rounded-lg hover:bg-gray-100';
+        cloudSettingsButton.innerHTML = '<i class="fa fa-cloud"></i>';
+        cloudSettingsButton.title = 'Configurar nuvem';
+        cloudSettingsButton.onclick = openCloudSettings;
         
         const syncStatusElement = document.createElement('div');
         syncStatusElement.id = 'syncStatus';
@@ -2748,6 +2661,7 @@
         `;
         
         syncContainer.appendChild(syncButton);
+        syncContainer.appendChild(cloudSettingsButton);
         syncContainer.appendChild(syncStatusElement);
         headerRight.appendChild(syncContainer);
       }
@@ -3636,8 +3550,6 @@
     let customerSidebarVisible = true;
     let selectedCustomer = null;
     let customerData = {};
-    
-
 
     // 切换客户侧边栏显示/隐藏
     function toggleCustomerSidebar() {
@@ -3701,7 +3613,6 @@
                     totalOrders: 0,
                     totalValue: 0,
                     tabPrecoSet: new Set(),
-                    representanteSet: new Set(),
                     totalAcerto: 0,
                     validAcertoCount: 0,
                     orders: []
@@ -3717,11 +3628,6 @@
                 if (formattedTabPreco) {
                     customerData[customerName].tabPrecoSet.add(formattedTabPreco);
                 }
-            }
-            
-            // 收集Representante文字内容（去重）
-            if (order.representative && order.representative !== null && order.representative !== '') {
-                customerData[customerName].representanteSet.add(order.representative);
             }
             
             // 计算% Acerto汇总
@@ -3775,7 +3681,6 @@
                 const displayName = formatCustomerName(customer.name);
                 // 处理Tab. Preço文字内容和% Acerto平均值
                 const tabPrecoText = customer.tabPrecoSet.size > 0 ? Array.from(customer.tabPrecoSet).join(', ') : '-';
-                const representanteText = customer.representanteSet.size > 0 ? Array.from(customer.representanteSet).join(', ') : '-';
                 const avgAcerto = customer.validAcertoCount > 0 ? (customer.totalAcerto / customer.validAcertoCount) : 0;
                 
                 html += `
@@ -3792,7 +3697,6 @@
                                           ${tabPrecoText && tabPrecoText !== '-' ? `<span class="font-medium" title="${tabPrecoText}">${tabPrecoText}</span>` : ''}
                                           ${formatAcerto(avgAcerto) ? `<span class="font-medium ml-2">${formatAcerto(avgAcerto)}</span>` : ''}
                                       </div>
-                                      ${representanteText && representanteText !== '-' ? `<div class="mt-1 text-center"><span class="font-medium text-green-600" title="${representanteText}">${representanteText}</span></div>` : ''}
                                   </div>
                             </div>
                             <div class="flex justify-center items-center space-x-3">
@@ -4150,126 +4054,5 @@
       </div>
     </div>
   </div>
-
-  <!-- 移动端底部导航栏 - Sephora风格 -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50" id="mobileBottomNav">
-    <div class="flex items-center justify-around py-2">
-      <!-- Todos -->
-      <button onclick="filterByStatus('all')" class="bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-300" data-status="all">
-        <div class="w-6 h-6 mb-1 flex items-center justify-center">
-          <i class="fa fa-list text-lg"></i>
-        </div>
-        <span class="text-xs font-medium">Todos</span>
-      </button>
-      
-      <!-- 待处理 -->
-      <button onclick="filterByStatus('pending')" class="bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-300" data-status="pending">
-        <div class="w-6 h-6 mb-1 flex items-center justify-center relative">
-          <i class="fa fa-clock-o text-lg"></i>
-          <span class="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center" id="pending-badge">0</span>
-        </div>
-        <span class="text-xs font-medium">Aguardando</span>
-      </button>
-      
-      <!-- 处理中 -->
-      <button onclick="filterByStatus('processing')" class="bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-300" data-status="processing">
-        <div class="w-6 h-6 mb-1 flex items-center justify-center relative">
-          <i class="fa fa-spinner text-lg"></i>
-          <span class="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center" id="processing-badge">0</span>
-        </div>
-        <span class="text-xs font-medium">Processando</span>
-      </button>
-      
-      <!-- 已完成 -->
-      <button onclick="filterByStatus('completed')" class="bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-300" data-status="completed">
-        <div class="w-6 h-6 mb-1 flex items-center justify-center">
-          <i class="fa fa-check-circle text-lg"></i>
-        </div>
-        <span class="text-xs font-medium">Concluído</span>
-      </button>
-      
-      <!-- 客户管理 -->
-      <button onclick="toggleCustomerSidebar()" class="bottom-nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-300">
-        <div class="w-6 h-6 mb-1 flex items-center justify-center">
-          <i class="fa fa-users text-lg"></i>
-        </div>
-        <span class="text-xs font-medium">Clientes</span>
-      </button>
-    </div>
-  </nav>
-
-  <style>
-    /* 底部导航栏样式 */
-    .bottom-nav-item {
-      color: #6b7280;
-      transition: all 0.3s ease;
-      min-width: 60px;
-    }
-    
-    .bottom-nav-item.active {
-      color: #000000;
-      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-      transform: translateY(-2px);
-    }
-    
-    .bottom-nav-item:hover {
-      color: #374151;
-      transform: translateY(-1px);
-    }
-    
-    .bottom-nav-item.active i {
-      color: #000000;
-    }
-    
-    .bottom-nav-item:hover:not(.active) {
-      background: rgba(0, 0, 0, 0.05);
-    }
-    
-    /* 徽章动画 */
-     .bottom-nav-item span[id$="-badge"] {
-       animation: pulse 2s infinite;
-     }
-     
-     @keyframes pulse {
-       0%, 100% { transform: scale(1); }
-       50% { transform: scale(1.1); }
-     }
-     
-     /* Sephora风格分类导航样式 */
-      .category-nav-item {
-        transition: all 0.3s ease;
-        border-bottom: 2px solid transparent;
-        white-space: nowrap;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        font-size: 11px;
-        padding: 0 4px;
-      }
-      
-      .category-nav-item.active {
-        color: #000000 !important;
-        border-bottom-color: #000000 !important;
-        font-weight: 700;
-      }
-      
-      .category-nav-item:hover:not(.active) {
-        color: #6b7280;
-        border-bottom-color: #e5e7eb;
-      }
-      
-      .category-nav-item:not(.active) {
-        color: #9ca3af;
-      }
-     
-     /* 隐藏滚动条 */
-     .scrollbar-hide {
-       -ms-overflow-style: none;
-       scrollbar-width: none;
-     }
-     
-     .scrollbar-hide::-webkit-scrollbar {
-       display: none;
-     }
-   </style>
 </body>
 </html>
