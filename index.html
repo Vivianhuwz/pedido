@@ -2446,12 +2446,9 @@
       }
 
       if (normalized === '2') {
-        const currentToken = localStorage.getItem('CLOUD_SYNC_TOKEN') || '';
-        const token = prompt('Neon token / Neon 同步口令（如果你没在 Netlify 设置 SYNC_TOKEN，可以留空）', currentToken);
         if (typeof window.enableNeonSync === 'function') {
-          window.enableNeonSync(token || '');
+          window.enableNeonSync('');
         } else {
-          if (token && token.trim()) localStorage.setItem('CLOUD_SYNC_TOKEN', token.trim());
           localStorage.setItem('CLOUD_PROVIDER', 'neon');
           window.location.reload();
         }
