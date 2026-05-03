@@ -12,6 +12,10 @@
   
   <!-- 配置文件 -->
   <script src="config.js?v=1.1"></script>
+  <script>
+    window.CLOUD_CONFIG = window.CLOUD_CONFIG || { provider: localStorage.getItem('CLOUD_PROVIDER') || 'none' };
+    window.SYNC_CONFIG = window.SYNC_CONFIG || { autoSync: true, syncInterval: 30000, retryAttempts: 3, retryDelay: 2000 };
+  </script>
   
   <style>
     /* 客户侧边栏自定义样式 */
@@ -1534,7 +1538,7 @@
       });
       const contentType = response.headers.get('content-type') || '';
       if (!contentType.includes('application/json')) {
-        const err = new Error('云端接口未部署或被重定向（/\\.netlify/functions/pedido_load 返回的不是 JSON）。请检查 Netlify 是否已部署 Functions、Base directory 是否指向 Pedido，以及是否已设置 NEON_DATABASE_URL。');
+        const err = new Error(`云端接口未部署或被重定向（/\\.netlify/functions/pedido_load 返回的不是 JSON）。HTTP ${response.status}。请检查 Netlify 是否已部署 Functions、Base directory 是否指向 Pedido，以及是否已设置 NEON_DATABASE_URL。`);
         err.code = 'FUNCTION_NOT_READY';
         throw err;
       }
@@ -1564,7 +1568,7 @@
       });
       const contentType = response.headers.get('content-type') || '';
       if (!contentType.includes('application/json')) {
-        const err = new Error('云端接口未部署或被重定向（/\\.netlify/functions/pedido_save 返回的不是 JSON）。请检查 Netlify 是否已部署 Functions、Base directory 是否指向 Pedido，以及是否已设置 NEON_DATABASE_URL。');
+        const err = new Error(`云端接口未部署或被重定向（/\\.netlify/functions/pedido_save 返回的不是 JSON）。HTTP ${response.status}。请检查 Netlify 是否已部署 Functions、Base directory 是否指向 Pedido，以及是否已设置 NEON_DATABASE_URL。`);
         err.code = 'FUNCTION_NOT_READY';
         throw err;
       }
@@ -1601,7 +1605,7 @@
             await loadFromNeon();
             isCloudInitialized = true;
             updateSyncStatus('Neon conectado', 'success');
-            if (window.SYNC_CONFIG.autoSync) {
+            if (window.SYNC_CONFIG && window.SYNC_CONFIG.autoSync) {
               startAutoSync();
             }
             return true;
@@ -1718,7 +1722,7 @@
     
     // 启动自动同步
     function startAutoSync() {
-      if (window.SYNC_CONFIG.autoSync && window.SYNC_CONFIG.syncInterval > 0) {
+      if (window.SYNC_CONFIG && window.SYNC_CONFIG.autoSync && window.SYNC_CONFIG.syncInterval > 0) {
         if (autoSyncTimerId) {
           clearInterval(autoSyncTimerId);
         }
