@@ -1522,6 +1522,10 @@
     let CLOUD_PROVIDER = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'none';
     let autoSyncTimerId = null;
 
+    function getCloudProvider() {
+      return (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'none';
+    }
+
     function getCloudSyncToken() {
       return localStorage.getItem('CLOUD_SYNC_TOKEN') || '';
     }
@@ -1633,6 +1637,8 @@
     async function syncToCloud() {
       if (!isCloudInitialized) {
         console.warn('云端未初始化，无法同步');
+        showNotification('云端未启用：请先点击云朵按钮选择 Neon', 'error');
+        updateSyncStatus('Modo local', 'offline');
         return false;
       }
       
@@ -1661,6 +1667,8 @@
     async function loadFromCloud() {
       if (!isCloudInitialized) {
         console.warn('云端未初始化，无法从云端加载数据');
+        showNotification('云端未启用：请先点击云朵按钮选择 Neon', 'error');
+        updateSyncStatus('Modo local', 'offline');
         return false;
       }
       
@@ -2464,17 +2472,26 @@
 
     // Sincronizar dados com o servidor
     async function syncWithServer() {
+      const provider = getCloudProvider();
+      if (!provider || provider === 'none') {
+        showNotification('当前为本地模式：请先点击云朵按钮选择 Neon', 'error');
+        updateSyncStatus('Modo local', 'offline');
+        return;
+      }
       updateSyncStatus('Sincronizando...', 'syncing');
       try {
         const ok = await syncToCloud();
         if (ok) {
           updateSyncStatus('Sincronizado', 'success');
+          showNotification('已同步到云端', 'success');
         } else {
           updateSyncStatus('Falha na sincronização', 'error');
+          showNotification('同步失败：请打开浏览器控制台查看错误信息', 'error');
         }
       } catch (error) {
         console.error('Falha na sincronização:', error);
         updateSyncStatus('Falha na sincronização', 'error');
+        showNotification(`同步异常: ${error && error.message ? error.message : error}`, 'error');
       }
     }
 
@@ -2547,14 +2564,26 @@
 
     // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', async function() {
+        addSyncStatusElement();
+
+        const provider = getCloudProvider();
+
         // 初始化Supabase
         await initializeSupabase();
+        if (!provider || provider === 'none') {
+          updateSyncStatus('Modo local', 'offline');
+        } else if (provider === 'neon') {
+          updateSyncStatus(isCloudInitialized ? 'Neon conectado' : 'Falha Neon', isCloudInitialized ? 'success' : 'error');
+        }
         
         // 先从云端加载数据，如果失败则从本地加载
-        const cloudLoadSuccess = await loadFromCloud();
-        if (!cloudLoadSuccess) {
-            // Carregar dados do armazenamento local
-            loadFromLocalStorage();
+        if (provider === 'neon' && isCloudInitialized) {
+          const cloudLoadSuccess = await loadFromCloud();
+          if (!cloudLoadSuccess) {
+              loadFromLocalStorage();
+          }
+        } else {
+          loadFromLocalStorage();
         }
         
         // 初始化过滤器
@@ -2562,9 +2591,6 @@
         
         // 更新客户统计
         updateCustomerStatistics();
-        
-        // Adicionar elemento de status de sincronização
-        addSyncStatusElement();
         
         // 启动自动同步
         startAutoSync();
