@@ -1,31 +1,5 @@
-// Supabase配置
-// YOUBAI订单管理系统云同步配置
-const defaultSupabaseConfig = {
-  url: 'https://myjrokuwbgbrtheeblkz.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15anJva3V3YmdicnRoZWVibGt6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MzE0NzgsImV4cCI6MjA3MjQwNzQ3OH0.BbJTCPe1KrftdR6bED0Magm0RUPGLfy3Dh9XAMeAd3c'
-};
-
-const storedSupabaseUrl = localStorage.getItem('CLOUD_SUPABASE_URL');
-const storedSupabaseAnonKey = localStorage.getItem('CLOUD_SUPABASE_ANON_KEY');
-
-window.SUPABASE_CONFIG = {
-  url: storedSupabaseUrl || defaultSupabaseConfig.url,
-  anonKey: storedSupabaseAnonKey || defaultSupabaseConfig.anonKey
-};
-
 window.CLOUD_CONFIG = {
-  provider: localStorage.getItem('CLOUD_PROVIDER') || 'supabase'
-};
-
-window.setSupabaseConfig = function (url, anonKey) {
-  if (typeof url === 'string' && url.trim()) {
-    localStorage.setItem('CLOUD_SUPABASE_URL', url.trim());
-  }
-  if (typeof anonKey === 'string' && anonKey.trim()) {
-    localStorage.setItem('CLOUD_SUPABASE_ANON_KEY', anonKey.trim());
-  }
-  localStorage.setItem('CLOUD_PROVIDER', 'supabase');
-  window.location.reload();
+  provider: localStorage.getItem('CLOUD_PROVIDER') || 'none'
 };
 
 window.disableCloudSync = function () {
@@ -42,8 +16,6 @@ window.enableNeonSync = function (syncToken) {
 };
 
 window.clearCloudConfig = function () {
-  localStorage.removeItem('CLOUD_SUPABASE_URL');
-  localStorage.removeItem('CLOUD_SUPABASE_ANON_KEY');
   localStorage.removeItem('CLOUD_SYNC_TOKEN');
   localStorage.removeItem('CLOUD_PROVIDER');
   window.location.reload();

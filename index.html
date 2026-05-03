@@ -10,9 +10,6 @@
   <!-- Adicionar biblioteca SheetJS para processar arquivos Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
-  <!-- Supabase客户端库 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
   <!-- 配置文件 -->
   <script src="config.js?v=1.1"></script>
   
@@ -1518,7 +1515,7 @@
     
     let supabaseClient = null;
     let isCloudInitialized = false;
-    let CLOUD_PROVIDER = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'supabase';
+    let CLOUD_PROVIDER = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'none';
     let autoSyncTimerId = null;
 
     function getCloudSyncToken() {
@@ -1535,6 +1532,12 @@
         method: 'GET',
         headers: { ...getCloudHeaders() }
       });
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const err = new Error('云端接口未部署或被重定向（/\\.netlify/functions/pedido_load 返回的不是 JSON）。请检查 Netlify 是否已部署 Functions、Base directory 是否指向 Pedido，以及是否已设置 NEON_DATABASE_URL。');
+        err.code = 'FUNCTION_NOT_READY';
+        throw err;
+      }
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         const errorMessage = payload && payload.message ? payload.message : '请求失败';
@@ -1559,6 +1562,12 @@
         },
         body: JSON.stringify({ data: ordersToSave })
       });
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const err = new Error('云端接口未部署或被重定向（/\\.netlify/functions/pedido_save 返回的不是 JSON）。请检查 Netlify 是否已部署 Functions、Base directory 是否指向 Pedido，以及是否已设置 NEON_DATABASE_URL。');
+        err.code = 'FUNCTION_NOT_READY';
+        throw err;
+      }
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         const errorMessage = payload && payload.message ? payload.message : '请求失败';
@@ -1574,10 +1583,10 @@
       return payload;
     }
     
-    // 初始化Supabase
+    // 初始化云端（Neon）
     async function initializeSupabase() {
       try {
-        CLOUD_PROVIDER = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'supabase';
+        CLOUD_PROVIDER = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'none';
 
         if (CLOUD_PROVIDER === 'none') {
           supabaseClient = null;
@@ -1603,40 +1612,10 @@
             return false;
           }
         }
-
-        if (typeof window.SUPABASE_CONFIG === 'undefined') {
-          console.warn('Supabase配置未找到，跳过云同步功能');
-          return false;
-        }
-
-        if (typeof window.supabase === 'undefined') {
-          console.warn('Supabase库未加载，跳过云同步功能');
-          return false;
-        }
-
-        supabaseClient = window.supabase.createClient(
-          window.SUPABASE_CONFIG.url,
-          window.SUPABASE_CONFIG.anonKey
-        );
-
-        const { error } = await supabaseClient
-          .from(window.DB_CONFIG.tableName)
-          .select('count', { count: 'exact', head: true });
-
-        if (error) {
-          console.error('Supabase连接测试失败:', error);
-          return false;
-        }
-
-        isCloudInitialized = true;
-        console.log('Supabase初始化成功');
-        updateSyncStatus('Conectado', 'success');
-
-        if (window.SYNC_CONFIG.autoSync) {
-          startAutoSync();
-        }
-
-        return true;
+        supabaseClient = null;
+        isCloudInitialized = false;
+        updateSyncStatus('Modo local', 'offline');
+        return false;
       } catch (error) {
         console.error('Supabase初始化失败:', error);
         updateSyncStatus('云端连接失败', 'error');
@@ -1660,74 +1639,8 @@
           localStorage.setItem('lastCloudSync', new Date().toISOString());
           return true;
         }
-
-        // 首先获取云端所有数据的ID
-        const { data: cloudData, error: selectError } = await supabaseClient
-          .from(window.DB_CONFIG.tableName)
-          .select('id');
-        
-        if (selectError) {
-          throw selectError;
-        }
-        
-        // 获取本地数据的ID
-        const localIds = orders.map(order => order.id);
-        const cloudIds = cloudData ? cloudData.map(item => item.id) : [];
-        
-        // 找出需要删除的云端记录（存在于云端但不存在于本地）
-        const idsToDelete = cloudIds.filter(id => !localIds.includes(id));
-        
-        // 删除云端中不存在于本地的记录
-        if (idsToDelete.length > 0) {
-          const { error: deleteError } = await supabaseClient
-            .from(window.DB_CONFIG.tableName)
-            .delete()
-            .in('id', idsToDelete);
-          
-          if (deleteError) {
-            throw deleteError;
-          }
-          
-          console.log(`已从云端删除 ${idsToDelete.length} 条记录:`, idsToDelete);
-        }
-        
-        // 准备本地数据进行同步
-        if (orders.length > 0) {
-          const dataToSync = orders.map(order => ({
-            id: order.id,
-            nf: order.nf || null,
-            pedido: order.pedido || null,
-            tab_preco: order.tabPreco || null,
-            acerto: parseFloat(order.acerto) || null,
-            company: order.company || '',
-            issue_date: order.issueDate || null,
-            final_value: parseFloat(order.finalValue) || 0,
-            order_type_description: order.orderTypeDescription || null,
-            representative: order.representative || null,
-            status: order.status || 'Aguardando',
-            cx: order.cx || null,
-            operator: order.operator || null,
-            updated_at: new Date().toISOString()
-          }));
-          
-          // 使用upsert来插入或更新数据
-          const { data, error } = await supabaseClient
-            .from(window.DB_CONFIG.tableName)
-            .upsert(dataToSync, { 
-              onConflict: 'id',
-              ignoreDuplicates: false 
-            });
-          
-          if (error) {
-            throw error;
-          }
-          
-          console.log('数据同步到云端成功:', data);
-        }
-        
-        updateSyncStatus('已同步到云端', 'success');
-        localStorage.setItem('lastCloudSync', new Date().toISOString());
-        return true;
+        updateSyncStatus('Modo local', 'offline');
+        return false;
         
       } catch (error) {
         console.error('同步到云端失败:', error);
@@ -1752,32 +1665,8 @@
           const payload = await loadFromNeon();
           cloudOrders = Array.isArray(payload.data) ? payload.data : [];
         } else {
-          const { data, error } = await supabaseClient
-            .from(window.DB_CONFIG.tableName)
-            .select('*')
-            .order('created_at', { ascending: false });
-
-          if (error) {
-            throw error;
-          }
-
-          cloudOrders = data && data.length > 0 ? data.map(item => ({
-            id: item.id,
-            nf: item.nf,
-            pedido: item.pedido,
-            tabPreco: item.tab_preco,
-            acerto: parseFloat(item.acerto) || null,
-            company: item.company,
-            issueDate: item.issue_date,
-            finalValue: parseFloat(item.final_value) || 0,
-            orderTypeDescription: item.order_type_description,
-            representative: item.representative,
-            status: item.status,
-            cx: item.cx,
-            operator: item.operator,
-            createdAt: item.created_at,
-            updatedAt: item.updated_at
-          })) : [];
+          updateSyncStatus('Modo local', 'offline');
+          return false;
         }
 
         if (cloudOrders && cloudOrders.length > 0) {
@@ -2534,10 +2423,10 @@
     }
 
     function openCloudSettings() {
-      const current = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'supabase';
+      const current = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.provider) || localStorage.getItem('CLOUD_PROVIDER') || 'none';
       const choice = prompt(
-        `选择云端模式 / Escolha o modo:\n1 = 本地/Local\n2 = Supabase\n3 = Neon\n\n当前/Atual: ${current}\n\n请输入/Digite 1/2/3:`,
-        current === 'neon' ? '3' : (current === 'supabase' ? '2' : '1')
+        `选择云端模式 / Escolha o modo:\n1 = 本地/Local\n2 = Neon\n\n当前/Atual: ${current}\n\n请输入/Digite 1/2:`,
+        current === 'neon' ? '2' : '1'
       );
       if (!choice) return;
       const normalized = String(choice).trim();
@@ -2552,9 +2441,9 @@
         return;
       }
 
-      if (normalized === '3') {
+      if (normalized === '2') {
         const currentToken = localStorage.getItem('CLOUD_SYNC_TOKEN') || '';
-        const token = prompt('Neon token / Neon 同步口令（建议填写）', currentToken);
+        const token = prompt('Neon token / Neon 同步口令（如果你没在 Netlify 设置 SYNC_TOKEN，可以留空）', currentToken);
         if (typeof window.enableNeonSync === 'function') {
           window.enableNeonSync(token || '');
         } else {
@@ -2563,24 +2452,6 @@
           window.location.reload();
         }
         return;
-      }
-
-      const currentUrl = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) || '';
-      const currentAnonKey = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.anonKey) || '';
-
-      const url = prompt('Supabase URL (ex: https://xxxx.supabase.co)', currentUrl);
-      if (!url || !url.trim()) return;
-
-      const anonKey = prompt('Supabase anon key (JWT)', currentAnonKey);
-      if (!anonKey || !anonKey.trim()) return;
-
-      if (typeof window.setSupabaseConfig === 'function') {
-        window.setSupabaseConfig(url.trim(), anonKey.trim());
-      } else {
-        localStorage.setItem('CLOUD_SUPABASE_URL', url.trim());
-        localStorage.setItem('CLOUD_SUPABASE_ANON_KEY', anonKey.trim());
-        localStorage.setItem('CLOUD_PROVIDER', 'supabase');
-        window.location.reload();
       }
     }
 

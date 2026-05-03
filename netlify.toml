@@ -2,8 +2,7 @@
   # 发布目录 - 当前目录
   publish = "."
   
-  # 构建命令 - 静态HTML不需要构建
-  command = "echo 'No build required for static HTML'"
+  command = "npm install"
 
 [build.environment]
   # Node.js版本（如果需要）

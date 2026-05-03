@@ -1,4 +1,5 @@
 # SPA重定向规则
+/.netlify/functions/*    /.netlify/functions/:splat   200
 /*    /index.html   200
 
 # 强制HTTPS
